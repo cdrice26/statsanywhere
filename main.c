@@ -2,8 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "vectors.h"
 #include "matrices.h"
+
+static void print_array(const double a[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%f%s", a[i], (i + 1 == n) ? "" : " ");
+    }
+    printf("\n");
+}
 
 static void print_matrix(const char* name, double** M, int n) {
     printf("%s =\n", name);
@@ -67,7 +73,11 @@ int main(void) {
 
     printf("max |(Q*R) - A| = %.12f\n", max_abs_diff(QR, A, n));
 
+    double* eigen = eigenvalues(A, n, 1e-6);
+    print_array(eigen, n);
+
     // Cleanup
+    free(eigen);
     free_matrix(A, n);
     free_matrix(qr.Q, n);
     free_matrix(qr.R, n);

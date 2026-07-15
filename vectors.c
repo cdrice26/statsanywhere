@@ -1,6 +1,6 @@
 #include "vectors.h"
 
-double* add(double* v1, double* v2, int n) {
+double* add(const double* v1, const double* v2, int n) {
     double* result = (double*)malloc(n * sizeof(double));
     for (int i = 0; i < n; i++) {
         result[i] = v1[i] + v2[i];
@@ -8,7 +8,7 @@ double* add(double* v1, double* v2, int n) {
     return result;
 }
 
-double* negate(double* v, int n) {
+double* negate(const double* v, int n) {
     double* result = (double*)malloc(n * sizeof(double));
     for (int i = 0; i < n; i++) {
         result[i] = -v[i];
@@ -16,14 +16,14 @@ double* negate(double* v, int n) {
     return result;
 }
 
-double* subtract(double* v1, double* v2, int n) {
+double* subtract(const double* v1, const double* v2, int n) {
     double* nv2 = negate(v2, n);
     double* result = add(v1, nv2, n);
     free(nv2);
     return result;
 }
 
-double dot_product(double* v1, double* v2, int n) {
+double dot_product(const double* v1, const double* v2, int n) {
     double result = 0;
     for (int i = 0; i < n; i++) {
         result += v1[i] * v2[i];
@@ -31,7 +31,7 @@ double dot_product(double* v1, double* v2, int n) {
     return result;
 }
 
-double* multiply_scalar(double* v, int n, double k) {
+double* multiply_scalar(const double* v, int n, double k) {
     double* result = (double*)malloc(n * sizeof(double));
     for (int i = 0; i < n; i++) {
         result[i] = v[i] * k;
@@ -39,14 +39,22 @@ double* multiply_scalar(double* v, int n, double k) {
     return result;
 }
 
-double* projection(double* of, double* onto, int n) {
+double* projection(const double* of, const double* onto, int n) {
     return multiply_scalar(onto, n, dot_product(onto, of, n) / dot_product(onto, onto, n));
 }
 
-double magnitude(double* v, int n) {
+double magnitude(const double* v, int n) {
     return sqrt(dot_product(v, v, n));
 }
 
-double* copy_vector(double* v, int n) {
+double* copy_vector(const double* v, int n) {
     return multiply_scalar(v, n, 1.0);
+}
+
+double max(const double* v, int n) {
+    double max = v[0];
+    for (int i = 1; i < n; i++) {
+        if (v[i] > max) max = v[i];
+    }
+    return max;
 }
