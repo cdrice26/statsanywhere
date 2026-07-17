@@ -63,6 +63,10 @@ int main(void) {
     A[1][0] = 6;   A[1][1] = 167; A[1][2] = -68;
     A[2][0] = -4;  A[2][1] = 24;  A[2][2] = -41;
 
+    EliminationResult res = reduce(A, n, n, 1e-6);
+
+    print_matrix("RREF", res.rref, n);
+
     QR_Decomposition qr = QR_decompose(A, n);
 
     print_matrix("Q", qr.Q, n);
