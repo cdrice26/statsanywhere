@@ -2,14 +2,15 @@
 #define LINKED_LIST_H
 #include <stdlib.h>
 
+// linked_list.h
 typedef struct Node {
-    int row;
-    int col;
+    void *data;
     struct Node *next;
 } Node;
 
-Node* create_linked_list();
-void push(Node* node, int row, int col);
-void free_linked_list(Node* head);
+Node* create_linked_list(void);
+void push(Node *head, void *data);
+void free_linked_list(Node *head, void (*free_data)(void*));
+int length(Node *head);
 
 #endif

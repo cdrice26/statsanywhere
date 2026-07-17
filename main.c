@@ -22,6 +22,17 @@ static void print_matrix(const char* name, double** M, int n) {
     printf("\n");
 }
 
+static void print_matrix_rect(const char* name, double** M, int m, int n) {
+    printf("%s =\n", name);
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("% .10f ", M[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
 static double** alloc_square(int n) {
     double** M = alloc_matrix(n, n);
     return M;
@@ -63,7 +74,7 @@ int main(void) {
     A[1][0] = 6;   A[1][1] = 167; A[1][2] = -68;
     A[2][0] = -4;  A[2][1] = 24;  A[2][2] = -41;
 
-    EliminationResult res = reduce(A, n, n, 1e-6);
+    EliminationResult res = reduce(A, n, n, n, 1e-6);
 
     print_matrix("RREF", res.rref, n);
 
@@ -78,7 +89,9 @@ int main(void) {
     printf("max |(Q*R) - A| = %.12f\n", max_abs_diff(QR, A, n));
 
     double* eigen = eigenvalues(A, n, 1e-6);
+    EigenResult eigen2 = eigenvectors(A, n, 1e-6);
     print_array(eigen, n);
+    print_matrix_rect("Eigenvectors", eigen2.eigenvectors, eigen2.count, eigen2.n);
 
     // Cleanup
     free(eigen);
@@ -86,6 +99,8 @@ int main(void) {
     free_matrix(qr.Q, n);
     free_matrix(qr.R, n);
     free_matrix(QR, n);
+    free_matrix(eigen2.eigenvectors, eigen2.count);
+    free(eigen2.eigenvalues);
 
     return 0;
 }
