@@ -59,7 +59,8 @@ double ident(double x) { return x; }
 double square(double x) { return x * x; }
 
 int main() {
-    printf("%f", normal_expectation(5.0, 2.0, 20, one));     //should return ~1.0        (total probability)
-    printf("%f", normal_expectation(5.0, 2.0, 20, ident));   //should return ~5.0        (the mean, mu)
-    printf("%f", normal_expectation(5.0, 2.0, 20, square));  //should return ~29.0       (E[X^2] = sigma^2 + mu^2 = 4+25)
+    printf("normal_expectation(5.0, 2.0, 20, one): should be 1: %f\n", normal_expectation(5.0, 2.0, 20, one));     //should return ~1.0        (total probability)
+    printf("normal_expectation(5.0, 2.0, 20, ident): should be 5: %f\n", normal_expectation(5.0, 2.0, 20, ident));   //should return ~5.0        (the mean, mu)
+    printf("normal_expectation(5.0, 2.0, 20, square): should be 29: %f\n", normal_expectation(5.0, 2.0, 20, square));  //should return ~29.0       (E[X^2] = sigma^2 + mu^2 = 4+25)
+    printf("normal_expectation(0.0, 1.0, 20, square): should be 1: %f\n", normal_expectation(0.0, 1.0, 20, square));
 }

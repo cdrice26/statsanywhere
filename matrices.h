@@ -42,8 +42,7 @@ double max(const double* v, int n);
 double** partition(int m, double* const* A, int an, double* const* B, int bn);
 EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, double tol);
 double** identity(int n);
-double* eigenvalues(double* const* A, int n, double tol);
+EigenResult eigendecompose(double* const* A, int n, double tol);
 void free_eigen_result(EigenResult* r);
-EigenResult eigenvectors(double* const* A, int n, double tol);
 
 #endif

@@ -58,3 +58,11 @@ double max(const double* v, int n) {
     }
     return max;
 }
+
+double norm(const double* v, int n) {
+    double sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += pow(v[i], 2);
+    }
+    return sqrt(sum);
+}

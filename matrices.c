@@ -301,41 +301,104 @@ EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, do
     return result;
 }
 
-double* eigenvalues(double* const* A, int n, double tol) {
+EigenResult eigendecompose(double* const* A, int n, double tol) {
     double** A_copy = copy_matrix(A, n, n);
+    double** eigenvector_accumulator = identity(n); // columns: eigenvector_accumulator[:, i]
 
-    for (int i = 0; i < 100; i++) {
+    for (int iter = 0; iter < 100; iter++) {
         QR_Decomposition qr = QR_decompose(A_copy, n);
 
         double** newA = multiply(qr.R, n, n, qr.Q, n, n);
+        double** newV = multiply(eigenvector_accumulator, n, n, qr.Q, n, n);
+
+        free_matrix(eigenvector_accumulator, n);
         free_matrix(qr.Q, n);
         free_matrix(qr.R, n);
+
+        eigenvector_accumulator = newV;
 
         double** diff = subtract_matrices(newA, n, n, A_copy, n, n);
         double* diagonal = diag(diff, n);
         free_matrix(diff, n);
 
-        for (int j = 0; j < n; j++) {
-            diagonal[j] = fabs(diagonal[j]);
-        }
-
+        for (int j = 0; j < n; j++) diagonal[j] = fabs(diagonal[j]);
         double m = max(diagonal, n);
         free(diagonal);
 
-        if (m < tol) {
-            free_matrix(A_copy, n);
-            A_copy = newA;
-            break;
-        }
-
         free_matrix(A_copy, n);
         A_copy = newA;
+
+        if (m < tol) break;
     }
 
-    double* eigenvalues = diag(A_copy, n);
+    double* eigenvalues_raw = diag(A_copy, n);
     free_matrix(A_copy, n);
-    return eigenvalues;
+
+    double** V = eigenvector_accumulator;
+    double** AV = multiply(A, n, n, V, n, n);
+
+    double** cost = alloc_matrix(n, n);
+    for (int j = 0; j < n; j++) {
+        double lambda = eigenvalues_raw[j];
+        for (int i = 0; i < n; i++) {
+            double r2 = 0.0;
+            for (int row = 0; row < n; row++) {
+                double r = AV[row][i] - lambda * V[row][i];
+                r2 += r * r;
+            }
+            cost[j][i] = sqrt(r2);
+        }
+    }
+
+    int* used = (int*)calloc(n, sizeof(int));
+    int* match_i_for_j = (int*)malloc(n * sizeof(int));
+
+    for (int j = 0; j < n; j++) {
+        double bestCost = 1e300;
+        int bestI = -1;
+        for (int i = 0; i < n; i++) {
+            if (!used[i] && cost[j][i] < bestCost) {
+                bestCost = cost[j][i];
+                bestI = i;
+            }
+        }
+        if (bestI == -1) { // fallback
+            for (int i = 0; i < n; i++) if (!used[i]) { bestI = i; break; }
+        }
+        used[bestI] = 1;
+        match_i_for_j[j] = bestI;
+    }
+
+    double* eigenvalues_paired = (double*)malloc(n * sizeof(double));
+    double** eigenvectors_cols_paired = alloc_matrix(n, n);
+
+    for (int j = 0; j < n; j++) {
+        int i = match_i_for_j[j];
+        eigenvalues_paired[j] = eigenvalues_raw[j];
+        for (int row = 0; row < n; row++) {
+            eigenvectors_cols_paired[row][j] = V[row][i];
+        }
+    }
+
+    free(eigenvalues_raw);
+    free_matrix(AV, n);
+    free_matrix(cost, n);
+    free(used);
+    free(match_i_for_j);
+    free_matrix(eigenvector_accumulator, n);
+
+    // final return expects eigenvectors as rows
+    double** eigenvectors_rows = transpose(eigenvectors_cols_paired, n, n);
+    free_matrix(eigenvectors_cols_paired, n);
+
+    return (EigenResult){
+        .eigenvalues = eigenvalues_paired,
+        .eigenvectors = eigenvectors_rows,
+        .n = n,
+        .count = n
+    };
 }
+
 
 void free_eigen_result(EigenResult* r) {
     if (r->eigenvectors) {
@@ -345,83 +408,87 @@ void free_eigen_result(EigenResult* r) {
     *r = (EigenResult){0};
 }
 
-EigenResult eigenvectors(double* const* A, int n, double tol) {
-    EigenResult failed = {0};
-    double* lambdas = eigenvalues(A, n, tol);
-    if (lambdas == NULL) return failed;
+// The below commented-out function calculates eigenvectors using a null space,
+// but was too unreliable due to eigenvalues being approximate. This is now rolled
+// into the combined eigendecompose() function.
+//
+// EigenResult eigenvectors(double* const* A, int n, double tol) {
+//     EigenResult failed = {0};
+//     double* lambdas = eigenvalues(A, n, tol);
+//     if (lambdas == NULL) return failed;
 
-    Node* eigenvector_list = create_linked_list();
-    if (eigenvector_list == NULL) {
-        free(lambdas);
-        return failed;
-    }
+//     Node* eigenvector_list = create_linked_list();
+//     if (eigenvector_list == NULL) {
+//         free(lambdas);
+//         return failed;
+//     }
 
-    for (int i = 0; i < n; i++) {
-        double** in = identity(n);
-        double** lambdaIn = in ? multiply_matrix_by_scalar(in, n, n, lambdas[i]) : NULL;
-        double** system = lambdaIn ? subtract_matrices(lambdaIn, n, n, A, n, n) : NULL;
-        if (lambdaIn) free_matrix(lambdaIn, n);
+//     for (int i = 0; i < n; i++) {
+//         double** in = identity(n);
+//         double** lambdaIn = in ? multiply_matrix_by_scalar(in, n, n, lambdas[i]) : NULL;
+//         double** system = lambdaIn ? subtract_matrices(lambdaIn, n, n, A, n, n) : NULL;
+//         if (lambdaIn) free_matrix(lambdaIn, n);
 
-        double** transposed = system ? transpose(system, n, n) : NULL;
-        if (system) free_matrix(system, n);
+//         double** transposed = system ? transpose(system, n, n) : NULL;
+//         if (system) free_matrix(system, n);
 
-        double** AIm = transposed ? partition(n, transposed, n, in, n) : NULL;
-        if (transposed) free_matrix(transposed, n);
-        if (in) free_matrix(in, n);
+//         double** AIm = transposed ? partition(n, transposed, n, in, n) : NULL;
+//         if (transposed) free_matrix(transposed, n);
+//         if (in) free_matrix(in, n);
 
-        if (AIm == NULL) {
-            free(lambdas);
-            free_linked_list(eigenvector_list, free);
-            return failed;
-        }
+//         if (AIm == NULL) {
+//             free(lambdas);
+//             free_linked_list(eigenvector_list, free);
+//             return failed;
+//         }
 
-        EliminationResult result = reduce(AIm, n, n * 2, n, sqrt(tol));
-        free_matrix(AIm, n);
+//         EliminationResult result = reduce(AIm, n, n * 2, n, sqrt(tol));
+//         free_matrix(AIm, n);
 
-        int rank = length(result.pivots);
-        for (int j = 0; j < n; j++) {
-        }
+//         int rank = length(result.pivots);
+//         for (int j = 0; j < n; j++) {
+//         }
 
-        bool alloc_failed = false;
-        for (int row = n - 1; row >= rank; row--) {
-            double* eigenvector = (double*)malloc(n * sizeof(double));
-            if (eigenvector == NULL) { alloc_failed = true; break; }
-            for (int j = n; j < n * 2; j++) {
-                eigenvector[j - n] = result.rref[row][j];
-            }
-            push(eigenvector_list, eigenvector);
-        }
+//         bool alloc_failed = false;
+//         for (int row = n - 1; row >= rank; row--) {
+//             double* eigenvector = (double*)malloc(n * sizeof(double));
+//             if (eigenvector == NULL) { alloc_failed = true; break; }
+//             for (int j = n; j < n * 2; j++) {
+//                 eigenvector[j - n] = result.rref[row][j];
+//             }
+//             push(eigenvector_list, eigenvector);
+//         }
 
-        free_matrix(result.rref, n);
-        free_linked_list(result.pivots, free);
+//         free_matrix(result.rref, n);
+//         free_linked_list(result.pivots, free);
 
-        if (alloc_failed) {
-            free(lambdas);
-            free_linked_list(eigenvector_list, free);
-            return failed;
-        }
-    }
+//         if (alloc_failed) {
+//             free(lambdas);
+//             free_linked_list(eigenvector_list, free);
+//             return failed;
+//         }
+//     }
 
-    int num_eigenvectors = length(eigenvector_list);
-    double** result = (double**)malloc(num_eigenvectors * sizeof(double*));
-    if (result == NULL) {
-        free(lambdas);
-        free_linked_list(eigenvector_list, free);
-        return failed;
-    }
+//     int num_eigenvectors = length(eigenvector_list);
+//     double** result = (double**)malloc(num_eigenvectors * sizeof(double*));
+//     if (result == NULL) {
+//         free(lambdas);
+//         free_linked_list(eigenvector_list, free);
+//         return failed;
+//     }
 
-    Node *current_eigenvector = eigenvector_list;
-    for (int i = 0; i < num_eigenvectors; i++) {
-        result[i] = (double*)current_eigenvector->data;
-        Node *next = current_eigenvector->next;
-        current_eigenvector = next;
-    }
-    free_linked_list(eigenvector_list, NULL);
+//     Node *current_eigenvector = eigenvector_list;
+//     for (int i = 0; i < num_eigenvectors; i++) {
+//         result[i] = (double*)current_eigenvector->data;
+//         Node *next = current_eigenvector->next;
+//         current_eigenvector = next;
+//     }
+//     free_linked_list(eigenvector_list, NULL);
 
-    return (EigenResult){
-        .eigenvalues = lambdas,
-        .eigenvectors = result,
-        .n = n,
-        .count = num_eigenvectors
-    };
-}
+//     return (EigenResult){
+//         .eigenvalues = lambdas,
+//         .eigenvectors = result,
+//         .n = n,
+//         .count = num_eigenvectors
+//     };
+// }

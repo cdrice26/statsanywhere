@@ -70,9 +70,9 @@ int main(void) {
     //       6  167 -68
     //      -4   24 -41 ]
     double** A = alloc_square(n);
-    A[0][0] = 12;  A[0][1] = -51; A[0][2] = 4;
-    A[1][0] = 6;   A[1][1] = 167; A[1][2] = -68;
-    A[2][0] = -4;  A[2][1] = 24;  A[2][2] = -41;
+    A[0][0] = 2;  A[0][1] = -1; A[0][2] = 4;
+    A[1][0] = -1;   A[1][1] = 3; A[1][2] = 0;
+    A[2][0] = 4;  A[2][1] = 0;  A[2][2] = 5;
 
     EliminationResult res = reduce(A, n, n, n, 1e-6);
 
@@ -88,19 +88,17 @@ int main(void) {
 
     printf("max |(Q*R) - A| = %.12f\n", max_abs_diff(QR, A, n));
 
-    double* eigen = eigenvalues(A, n, 1e-6);
-    EigenResult eigen2 = eigenvectors(A, n, 1e-6);
-    print_array(eigen, n);
-    print_matrix_rect("Eigenvectors", eigen2.eigenvectors, eigen2.count, eigen2.n);
+    EigenResult eigen = eigendecompose(A, n, 1e-6);
+    print_array(eigen.eigenvalues, n);
+    print_matrix_rect("Eigenvectors", eigen.eigenvectors, eigen.count, eigen.n);
 
     // Cleanup
-    free(eigen);
     free_matrix(A, n);
     free_matrix(qr.Q, n);
     free_matrix(qr.R, n);
     free_matrix(QR, n);
-    free_matrix(eigen2.eigenvectors, eigen2.count);
-    free(eigen2.eigenvalues);
+    free_matrix(eigen.eigenvectors, eigen.count);
+    free(eigen.eigenvalues);
 
     return 0;
 }
