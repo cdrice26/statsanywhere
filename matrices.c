@@ -305,10 +305,23 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
     double** A_copy = copy_matrix(A, n, n);
     double** eigenvector_accumulator = identity(n); // columns: eigenvector_accumulator[:, i]
 
+    double shift = 0.5;  // Shift to break ±λ symmetry for Hermite-like matrices
+
     for (int iter = 0; iter < 100; iter++) {
+        // Apply shift: A_copy - shift*I
+        for (int i = 0; i < n; i++) {
+            A_copy[i][i] -= shift;
+        }
+
         QR_Decomposition qr = QR_decompose(A_copy, n);
 
         double** newA = multiply(qr.R, n, n, qr.Q, n, n);
+
+        // Remove shift: add shift*I back
+        for (int i = 0; i < n; i++) {
+            newA[i][i] += shift;
+        }
+
         double** newV = multiply(eigenvector_accumulator, n, n, qr.Q, n, n);
 
         free_matrix(eigenvector_accumulator, n);
@@ -374,7 +387,7 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
 
     for (int j = 0; j < n; j++) {
         int i = match_i_for_j[j];
-        eigenvalues_paired[j] = eigenvalues_raw[j];
+        eigenvalues_paired[j] = eigenvalues_raw[i];
         for (int row = 0; row < n; row++) {
             eigenvectors_cols_paired[row][j] = V[row][i];
         }
