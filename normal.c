@@ -1,18 +1,15 @@
 #include "normal.h"
 
 typedef struct {
-    double mu;
-    double sigma;
-    double (*user_f)(double);
-} NormalContext;
+    double max;
+} MaxVal;
 
-static double normal_transform_and_call(double t, void* ctx) {
-    NormalContext* nc = (NormalContext*)ctx;
-    double x = nc->mu + nc->sigma * t;
-    return nc->user_f(x);
+static double indicator(double t, void* ctx) {
+    MaxVal* mv = (MaxVal*)ctx;
+    return t < mv->max;
 }
 
-double normal_expectation(double mu, double sigma, int n, double (*f)(double)) {
+double normal_estimate(int n, MaxVal* mv) {
     double* a = malloc(n * sizeof(double));
     double* b = malloc((n - 1) * sizeof(double));
 
@@ -20,9 +17,8 @@ double normal_expectation(double mu, double sigma, int n, double (*f)(double)) {
     for (int i = 0; i < n - 1; i++) b[i] = (double)(i + 1);
 
     double beta_0 = sqrt(2.0 * M_PI);
-    NormalContext ctx = { mu, sigma, f };
 
-    double raw = quadrature_estimate(n, a, b, beta_0, normal_transform_and_call, &ctx);
+    double raw = quadrature_estimate(n, a, b, beta_0, indicator, mv);
 
     free(a);
     free(b);
@@ -39,28 +35,27 @@ double normalpdf(double x, double mu, double sigma) {
     return (1 / sigma) * normalpdf_std(z);
 }
 
-double normalcdf(double lower, double upper, double mu, double sigma) {
-    double multiplier = 1.0 / sqrt(M_PI);
-    return 0.0;
-    /* calculate J at several n's, check for convergence. n = 5
-    prev = gauss_quadrature_estimate(n)
-    loop:
-        n = n * 2
-        curr = gauss_quadrature_estimate(n)
-        if abs(curr - prev) < tol:
-            return curr
-        prev = curr
-
-        hermite, so a = 0 and b = n. */
+double Phi(double upper) {
+    int n = 100;
+    MaxVal mv = {upper};
+    return normal_estimate(n, &mv);
 }
 
-double one(double x) { return 1.0; }
-double ident(double x) { return x; }
-double square(double x) { return x * x; }
+// double normalcdf(double lower, double upper, double mu, double sigma) {
+//     double multiplier = 1.0 / sqrt(M_PI);
+//     return 0.0;
+//     /* calculate J at several n's, check for convergence. n = 5
+//     prev = gauss_quadrature_estimate(n)
+//     loop:
+//         n = n * 2
+//         curr = gauss_quadrature_estimate(n)
+//         if abs(curr - prev) < tol:
+//             return curr
+//         prev = curr
+
+//         hermite, so a = 0 and b = n. */
+// }
 
 int main() {
-    printf("normal_expectation(5.0, 2.0, 20, one): should be 1: %f\n", normal_expectation(5.0, 2.0, 20, one));     //should return ~1.0        (total probability)
-    printf("normal_expectation(5.0, 2.0, 20, ident): should be 5: %f\n", normal_expectation(5.0, 2.0, 20, ident));   //should return ~5.0        (the mean, mu)
-    printf("normal_expectation(5.0, 2.0, 20, square): should be 29: %f\n", normal_expectation(5.0, 2.0, 20, square));  //should return ~29.0       (E[X^2] = sigma^2 + mu^2 = 4+25)
-    printf("normal_expectation(0.0, 1.0, 20, square): should be 1: %f\n", normal_expectation(0.0, 1.0, 20, square));
+    printf("Phi(1) (should be .841) = %f", Phi(1));
 }
