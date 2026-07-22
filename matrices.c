@@ -313,113 +313,51 @@ double wilkinson_shift(double** A, int n) {
 
 EigenResult eigendecompose(double* const* A, int n, double tol) {
     double** A_copy = copy_matrix(A, n, n);
-    double** eigenvector_accumulator = identity(n); // columns: eigenvector_accumulator[:, i]
+    double** V = identity(n);
 
-    double shift = 0.5;  // Shift to break ±λ symmetry for Hermite-like matrices
+    int m = n;
+    int max_iter_per_value = 1000;
 
-    for (int iter = 0; iter < 5000; iter++) {
-        double** prevA = copy_matrix(A_copy, n, n);
+    while (m > 1) {
+        int converged = 0;
+        for (int iter = 0; iter < max_iter_per_value; iter++) {
+            double mu = wilkinson_shift(A_copy, m);
 
-        double mu = (n >= 2) ? wilkinson_shift(A_copy, n) : A_copy[n-1][n-1];
+            for (int i = 0; i < m; i++) A_copy[i][i] -= mu;
 
-        // Apply shift: A_copy - shift*I
-        for (int i = 0; i < n; i++) {
-            A_copy[i][i] -= mu;
+            QR_Decomposition qr = QR_decompose(A_copy, m);
+            double** RQ = multiply(qr.R, m, m, qr.Q, m, m);
+
+            for (int i = 0; i < m; i++) RQ[i][i] += mu;
+
+            for (int i = 0; i < m; i++)
+                for (int j = 0; j < m; j++)
+                    A_copy[i][j] = RQ[i][j];
+            free_matrix(RQ, m);
+
+            double** Vblock = multiply(V, n, m, qr.Q, m, m);
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++)
+                    V[i][j] = Vblock[i][j];
+            free_matrix(Vblock, n);
+
+            free_matrix(qr.Q, m);
+            free_matrix(qr.R, m);
+
+            if (fabs(A_copy[m-1][m-2]) < tol) { converged = 1; break; }
         }
-
-        QR_Decomposition qr = QR_decompose(A_copy, n);
-        double** newA = multiply(qr.R, n, n, qr.Q, n, n);
-
-        // Remove shift: add shift*I back
-        for (int i = 0; i < n; i++) {
-            newA[i][i] += mu;
-        }
-
-        double** newV = multiply(eigenvector_accumulator, n, n, qr.Q, n, n);
-
-        free_matrix(eigenvector_accumulator, n);
-        free_matrix(qr.Q, n);
-        free_matrix(qr.R, n);
-
-        eigenvector_accumulator = newV;
-
-        double** diff = subtract_matrices(newA, n, n, prevA, n, n);
-        double* diagonal = diag(diff, n);
-        free_matrix(diff, n);
-        free_matrix(prevA, n);
-
-        for (int j = 0; j < n; j++) diagonal[j] = fabs(diagonal[j]);
-        double m = max(diagonal, n);
-        free(diagonal);
-
-        free_matrix(A_copy, n);
-        A_copy = newA;
-
-        if (m < tol) break;
+        m--;   // deflate regardless — even if not fully converged, avoids stalling forever
+        (void)converged;
     }
 
-    double* eigenvalues_raw = diag(A_copy, n);
+    double* eigenvalues = diag(A_copy, n);
     free_matrix(A_copy, n);
 
-    double** V = eigenvector_accumulator;
-    double** AV = multiply(A, n, n, V, n, n);
-
-    double** cost = alloc_matrix(n, n);
-    for (int j = 0; j < n; j++) {
-        double lambda = eigenvalues_raw[j];
-        for (int i = 0; i < n; i++) {
-            double r2 = 0.0;
-            for (int row = 0; row < n; row++) {
-                double r = AV[row][i] - lambda * V[row][i];
-                r2 += r * r;
-            }
-            cost[j][i] = sqrt(r2);
-        }
-    }
-
-    int* used = (int*)calloc(n, sizeof(int));
-    int* match_i_for_j = (int*)malloc(n * sizeof(int));
-
-    for (int j = 0; j < n; j++) {
-        double bestCost = 1e300;
-        int bestI = -1;
-        for (int i = 0; i < n; i++) {
-            if (!used[i] && cost[j][i] < bestCost) {
-                bestCost = cost[j][i];
-                bestI = i;
-            }
-        }
-        if (bestI == -1) { // fallback
-            for (int i = 0; i < n; i++) if (!used[i]) { bestI = i; break; }
-        }
-        used[bestI] = 1;
-        match_i_for_j[j] = bestI;
-    }
-
-    double* eigenvalues_paired = (double*)malloc(n * sizeof(double));
-    double** eigenvectors_cols_paired = alloc_matrix(n, n);
-
-    for (int j = 0; j < n; j++) {
-        int i = match_i_for_j[j];
-        eigenvalues_paired[j] = eigenvalues_raw[i];
-        for (int row = 0; row < n; row++) {
-            eigenvectors_cols_paired[row][j] = V[row][i];
-        }
-    }
-
-    free(eigenvalues_raw);
-    free_matrix(AV, n);
-    free_matrix(cost, n);
-    free(used);
-    free(match_i_for_j);
-    free_matrix(eigenvector_accumulator, n);
-
-    // final return expects eigenvectors as rows
-    double** eigenvectors_rows = transpose(eigenvectors_cols_paired, n, n);
-    free_matrix(eigenvectors_cols_paired, n);
+    double** eigenvectors_rows = transpose(V, n, n);
+    free_matrix(V, n);
 
     return (EigenResult){
-        .eigenvalues = eigenvalues_paired,
+        .eigenvalues = eigenvalues,
         .eigenvectors = eigenvectors_rows,
         .n = n,
         .count = n

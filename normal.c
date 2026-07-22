@@ -6,9 +6,13 @@ typedef struct {
 
 static double transform(double t, void* ctx) {
     MaxVal* mv = (MaxVal*)ctx;
-    double x = mv->max - exp(-t);
-    double g = normalpdf_std(x) * exp(-t);
-    return g * exp(t * t / 2.0);
+    if (t < -6.0 || t > 20.0) return 0.0;
+    double s = sinh(t);
+    double x = mv->max - exp(-s);
+    double dxdt = exp(-s) * cosh(t);
+    double g = normalpdf_std(x) * dxdt;
+    double val = g * exp(t * t / 2.0);
+    return isfinite(val) ? val : 0.0;
 }
 
 double normal_estimate(int n, MaxVal* mv) {
@@ -38,7 +42,7 @@ double normalpdf(double x, double mu, double sigma) {
 }
 
 double Phi(double upper) {
-    int n = 40;
+    int n = 100;
     MaxVal mv = {upper};
     return normal_estimate(n, &mv);
 }
