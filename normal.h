@@ -5,5 +5,6 @@
 #include <stdbool.h>
 #include "quadrature_weights.h"
 
+double normalpdf_std(double z);
 double normalpdf(double z, double mu, double sigma);
 #endif

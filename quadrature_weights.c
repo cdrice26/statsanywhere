@@ -17,7 +17,7 @@ double quadrature_estimate(int n, double* a, double* b, double beta_0, double (*
             }
         }
     }
-    EigenResult eigen_result = eigendecompose(J, n, 1e-6);
+    EigenResult eigen_result = eigendecompose(J, n, 1e-10);
 
     double sum = 0.0;
     for (int i = 0; i < n; i++) {

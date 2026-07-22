@@ -4,9 +4,11 @@ typedef struct {
     double max;
 } MaxVal;
 
-static double indicator(double t, void* ctx) {
+static double transform(double t, void* ctx) {
     MaxVal* mv = (MaxVal*)ctx;
-    return t < mv->max;
+    double x = mv->max - exp(-t);
+    double g = normalpdf_std(x) * exp(-t);
+    return g * exp(t * t / 2.0);
 }
 
 double normal_estimate(int n, MaxVal* mv) {
@@ -18,12 +20,12 @@ double normal_estimate(int n, MaxVal* mv) {
 
     double beta_0 = sqrt(2.0 * M_PI);
 
-    double raw = quadrature_estimate(n, a, b, beta_0, indicator, mv);
+    double result = quadrature_estimate(n, a, b, beta_0, transform, mv);
 
     free(a);
     free(b);
 
-    return raw / beta_0;
+    return result;
 }
 
 double normalpdf_std(double z) {
@@ -36,7 +38,7 @@ double normalpdf(double x, double mu, double sigma) {
 }
 
 double Phi(double upper) {
-    int n = 100;
+    int n = 40;
     MaxVal mv = {upper};
     return normal_estimate(n, &mv);
 }

@@ -301,25 +301,38 @@ EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, do
     return result;
 }
 
+double wilkinson_shift(double** A, int n) {
+    double a = A[n-2][n-2];
+    double b = A[n-2][n-1];
+    double c = A[n-1][n-1];
+    double delta = (a - c) / 2.0;
+    double sign = (delta >= 0) ? 1.0 : -1.0;
+    if (delta == 0.0) sign = 1.0;
+    return c - sign * (b * b) / (fabs(delta) + sqrt(delta * delta + b * b));
+}
+
 EigenResult eigendecompose(double* const* A, int n, double tol) {
     double** A_copy = copy_matrix(A, n, n);
     double** eigenvector_accumulator = identity(n); // columns: eigenvector_accumulator[:, i]
 
     double shift = 0.5;  // Shift to break ±λ symmetry for Hermite-like matrices
 
-    for (int iter = 0; iter < 100; iter++) {
+    for (int iter = 0; iter < 5000; iter++) {
+        double** prevA = copy_matrix(A_copy, n, n);
+
+        double mu = (n >= 2) ? wilkinson_shift(A_copy, n) : A_copy[n-1][n-1];
+
         // Apply shift: A_copy - shift*I
         for (int i = 0; i < n; i++) {
-            A_copy[i][i] -= shift;
+            A_copy[i][i] -= mu;
         }
 
         QR_Decomposition qr = QR_decompose(A_copy, n);
-
         double** newA = multiply(qr.R, n, n, qr.Q, n, n);
 
         // Remove shift: add shift*I back
         for (int i = 0; i < n; i++) {
-            newA[i][i] += shift;
+            newA[i][i] += mu;
         }
 
         double** newV = multiply(eigenvector_accumulator, n, n, qr.Q, n, n);
@@ -330,9 +343,10 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
 
         eigenvector_accumulator = newV;
 
-        double** diff = subtract_matrices(newA, n, n, A_copy, n, n);
+        double** diff = subtract_matrices(newA, n, n, prevA, n, n);
         double* diagonal = diag(diff, n);
         free_matrix(diff, n);
+        free_matrix(prevA, n);
 
         for (int j = 0; j < n; j++) diagonal[j] = fabs(diagonal[j]);
         double m = max(diagonal, n);
