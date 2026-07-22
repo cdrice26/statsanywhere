@@ -47,21 +47,20 @@ double Phi(double upper) {
     return normal_estimate(n, &mv);
 }
 
-// double normalcdf(double lower, double upper, double mu, double sigma) {
-//     double multiplier = 1.0 / sqrt(M_PI);
-//     return 0.0;
-//     /* calculate J at several n's, check for convergence. n = 5
-//     prev = gauss_quadrature_estimate(n)
-//     loop:
-//         n = n * 2
-//         curr = gauss_quadrature_estimate(n)
-//         if abs(curr - prev) < tol:
-//             return curr
-//         prev = curr
+double normalcdf_std(double lower, double upper) {
+    double below_lower = Phi(lower);
+    double above_upper = 1 - Phi(upper);
+    return 1 - (below_lower + above_upper);
+}
 
-//         hermite, so a = 0 and b = n. */
-// }
+double normalcdf(double lower, double upper, double mu, double sigma) {
+    double z_lower = (lower - mu) / sigma;
+    double z_upper = (upper - mu) / sigma;
+    return normalcdf_std(z_lower, z_upper);
+}
 
 int main() {
-    printf("Phi(1) (should be .841) = %f", Phi(1));
+    printf("Phi(1) (should be .841) = %f\n", Phi(1));
+    printf("normalcdf_std(-1, 1) (should be .683) = %f\n", normalcdf_std(-1, 1));
+    printf("normalcdf(-1, 1, 1, 2) (should be .341) = %f\n", normalcdf(-1, 1, 1, 2));
 }

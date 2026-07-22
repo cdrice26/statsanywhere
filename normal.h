@@ -7,4 +7,7 @@
 
 double normalpdf_std(double z);
 double normalpdf(double z, double mu, double sigma);
+
+double normalcdf_std(double lower, double upper);
+double normalcdf(double lower, double upper, double mu, double sigma);
 #endif
