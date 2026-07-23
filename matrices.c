@@ -1,6 +1,10 @@
 #include "matrices.h"
 #include "linked_list.h"
 
+typedef struct {
+    double c, s;
+} GivensRotation;
+
 double** alloc_matrix(int m, int n) {
     double** A = (double**)malloc(m * sizeof(double*));
     for (int i = 0; i < m; i++) {
@@ -364,6 +368,84 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
     };
 }
 
+static double wilkinson_shift_tridiagonal(double a, double b, double c) {
+    double delta = (a - c) / 2.0;
+    double sign = (delta >= 0.0) ? 1.0 : -1.0;
+    if (delta == 0.0) sign = 1.0;
+    double denom = fabs(delta) + sqrt(delta * delta + b * b);
+    return (denom != 0.0) ? c - sign * (b * b) / denom : c;
+}
+
+// Rotate rows k, k+1 of an m-wide-active row (in place), first `width` columns.
+static void givens_left(double** T, int k, double c, double s, int width) {
+    for (int j = 0; j < width; j++) {
+        double a = T[k][j], b = T[k + 1][j];
+        T[k][j]     =  c * a + s * b;
+        T[k + 1][j] = -s * a + c * b;
+    }
+}
+
+// Rotate columns k, k+1, over the first `rows` rows.
+static void givens_right(double** T, int k, double c, double s, int rows) {
+    for (int i = 0; i < rows; i++) {
+        double a = T[i][k], b = T[i][k + 1];
+        T[i][k]     =  c * a + s * b;
+        T[i][k + 1] = -s * a + c * b;
+    }
+}
+
+EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
+    double** T = copy_matrix(A, n, n);   // tridiagonal, kept dense for indexing simplicity
+    double** V = identity(n);
+
+    int max_iter_per_value = 1000;
+    double* ks_c = malloc((n - 1) * sizeof(double));
+    double* ks_s = malloc((n - 1) * sizeof(double));
+    int*    ks_k = malloc((n - 1) * sizeof(int));
+
+    int m = n;
+    while (m > 1) {
+        for (int iter = 0; iter < max_iter_per_value; iter++) {
+            double mu = wilkinson_shift_tridiagonal(T[m-2][m-2], T[m-2][m-1], T[m-1][m-1]);
+
+            for (int i = 0; i < m; i++) T[i][i] -= mu;
+
+            int count = 0;
+            for (int k = 0; k < m - 1; k++) {
+                double a = T[k][k], b = T[k + 1][k];
+                double r = hypot(a, b);
+                double c = (r < 1e-300) ? 1.0 : a / r;
+                double s = (r < 1e-300) ? 0.0 : b / r;
+                ks_k[count] = k; ks_c[count] = c; ks_s[count] = s; count++;
+                givens_left(T, k, c, s, m);
+            }
+            for (int idx = 0; idx < count; idx++) {
+                givens_right(T, ks_k[idx], ks_c[idx], ks_s[idx], m);
+                givens_right(V, ks_k[idx], ks_c[idx], ks_s[idx], n);
+            }
+
+            for (int i = 0; i < m; i++) T[i][i] += mu;
+
+            if (fabs(T[m-1][m-2]) < tol) break;
+        }
+        m--;
+    }
+
+    free(ks_c); free(ks_s); free(ks_k);
+
+    double* eigenvalues = diag(T, n);
+    free_matrix(T, n);
+
+    double** eigenvectors_rows = transpose(V, n, n);
+    free_matrix(V, n);
+
+    return (EigenResult){
+        .eigenvalues = eigenvalues,
+        .eigenvectors = eigenvectors_rows,
+        .n = n,
+        .count = n
+    };
+}
 
 void free_eigen_result(EigenResult* r) {
     if (r->eigenvectors) {
