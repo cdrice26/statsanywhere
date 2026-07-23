@@ -1,10 +1,6 @@
 #include "matrices.h"
 #include "linked_list.h"
 
-typedef struct {
-    double c, s;
-} GivensRotation;
-
 double** alloc_matrix(int m, int n) {
     double** A = (double**)malloc(m * sizeof(double*));
     for (int i = 0; i < m; i++) {
