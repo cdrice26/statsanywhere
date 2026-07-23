@@ -42,7 +42,7 @@ double normalpdf(double x, double mu, double sigma) {
 }
 
 double Phi(double upper) {
-    int n = 100;
+    int n = 300;
     MaxVal mv = {upper};
     return normal_estimate(n, &mv);
 }
