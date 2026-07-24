@@ -9,7 +9,7 @@ typedef struct Node {
 } Node;
 
 Node* create_linked_list(void);
-void push(Node *head, void *data);
+int push(Node *head, void *data);
 void free_linked_list(Node *head, void (*free_data)(void*));
 int length(Node *head);
 

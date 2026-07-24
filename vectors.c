@@ -2,6 +2,7 @@
 
 double* add(const double* v1, const double* v2, int n) {
     double* result = (double*)malloc(n * sizeof(double));
+    if (result == NULL) return NULL;
     for (int i = 0; i < n; i++) {
         result[i] = v1[i] + v2[i];
     }
@@ -10,6 +11,7 @@ double* add(const double* v1, const double* v2, int n) {
 
 double* negate(const double* v, int n) {
     double* result = (double*)malloc(n * sizeof(double));
+    if (result == NULL) return NULL;
     for (int i = 0; i < n; i++) {
         result[i] = -v[i];
     }
@@ -18,7 +20,9 @@ double* negate(const double* v, int n) {
 
 double* subtract(const double* v1, const double* v2, int n) {
     double* nv2 = negate(v2, n);
+    if (nv2 == NULL) return NULL;
     double* result = add(v1, nv2, n);
+    if (result == NULL) return NULL;
     free(nv2);
     return result;
 }
@@ -33,6 +37,7 @@ double dot_product(const double* v1, const double* v2, int n) {
 
 double* multiply_scalar(const double* v, int n, double k) {
     double* result = (double*)malloc(n * sizeof(double));
+    if (result == NULL) return NULL;
     for (int i = 0; i < n; i++) {
         result[i] = v[i] * k;
     }
@@ -57,12 +62,4 @@ double max(const double* v, int n) {
         if (v[i] > max) max = v[i];
     }
     return max;
-}
-
-double norm(const double* v, int n) {
-    double sum = 0;
-    for (int i = 0; i < n; i++) {
-        sum += pow(v[i], 2);
-    }
-    return sqrt(sum);
 }

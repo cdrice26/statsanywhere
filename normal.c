@@ -19,6 +19,8 @@ double normal_estimate(int n, MaxVal* mv) {
     double* a = malloc(n * sizeof(double));
     double* b = malloc((n - 1) * sizeof(double));
 
+    if (a == NULL || b == NULL) return -1;
+
     for (int i = 0; i < n; i++) a[i] = 0.0;
     for (int i = 0; i < n - 1; i++) b[i] = (double)(i + 1);
 

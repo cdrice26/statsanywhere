@@ -11,6 +11,5 @@ double* multiply_scalar(const double* v, int n, double k);
 double* projection(const double* of, const double* onto, int n);
 double magnitude(const double* v, int n);
 double* copy_vector(const double* v, int n);
-double norm(const double* v, int n);
 
 #endif

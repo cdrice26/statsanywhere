@@ -9,14 +9,17 @@ Node* create_linked_list(void) {
     return head;
 }
 
-void push(Node *node, void *data) {
+int push(Node *node, void *data) {
+    if (node == NULL) return 0;
     while (node->next != NULL) {
         node = node->next;
     }
     node->data = data;
     node->next = malloc(sizeof(Node));
+    if (node->next == NULL) return 0;
     node->next->data = NULL;
     node->next->next = NULL;
+    return 1;
 }
 
 // free_data is a callback for freeing whatever data points to,

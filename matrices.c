@@ -3,8 +3,14 @@
 
 double** alloc_matrix(int m, int n) {
     double** A = (double**)malloc(m * sizeof(double*));
+    if (A == NULL) return NULL;
     for (int i = 0; i < m; i++) {
         A[i] = (double*)malloc(n * sizeof(double));
+        if (A[i] == NULL) {
+            for (int j = 0; j < i; j++) free(A[j]);
+            free(A);
+            return NULL;
+        }
     }
     return A;
 }
@@ -18,6 +24,7 @@ void free_matrix(double** A, int m) {
 
 double** copy_matrix(double* const* A, int m, int n) {
     double** result = alloc_matrix(m, n);
+    if (result == NULL) return NULL;
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
             result[i][j] = A[i][j];
@@ -27,7 +34,8 @@ double** copy_matrix(double* const* A, int m, int n) {
 }
 
 double** transpose(double* const* A, int m, int n) {
-    double** AT = alloc_matrix(m, n);
+    double** AT = alloc_matrix(n, m);
+    if (AT == NULL) return NULL;
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
             AT[j][i] = A[i][j];
@@ -38,13 +46,29 @@ double** transpose(double* const* A, int m, int n) {
 
 double** gram_schmidt(double* const* A, int n) {
     double** Q = malloc(n * sizeof(double*));
+    if (Q == NULL) return NULL;
+    
     for (int i = 0; i < n; i++) {
         Q[i] = copy_vector(A[i], n);
+        if (Q[i] == NULL) {
+            for (int k = 0; k < i; k++) free(Q[k]);
+            free(Q);
+            return NULL;
+        }
         for (int j = 0; j < i; j++) {
             double* proj = projection(A[i], Q[j], n);
+            if (proj == NULL) {
+                for (int k = 0; k <= i; k++) free(Q[k]);
+                free(Q);
+                return NULL;
+            }
             double* newQ = subtract(Q[i], proj, n);
-
             free(proj);
+            if (newQ == NULL) {
+                for (int k = 0; k <= i; k++) free(Q[k]);
+                free(Q);
+                return NULL;
+            }
             free(Q[i]);
             Q[i] = newQ;
         }
@@ -52,7 +76,11 @@ double** gram_schmidt(double* const* A, int n) {
     for (int i = 0; i < n; i++) {
         double mag = magnitude(Q[i], n);
         double* newQ = multiply_scalar(Q[i], n, 1.0 / mag);
-
+        if (newQ == NULL) {
+            for (int k = 0; k < n; k++) free(Q[k]);
+            free(Q);
+            return NULL;
+        }
         free(Q[i]);
         Q[i] = newQ;
     }
@@ -60,10 +88,32 @@ double** gram_schmidt(double* const* A, int n) {
 }
 
 QR_Decomposition QR_decompose(double* const* A, int n) {
+    QR_Decomposition failed = {NULL, NULL};
+    
     double** AT = transpose(A, n, n);
+    if (AT == NULL) return failed;
+    
     double** Qtmp = gram_schmidt(AT, n);
+    if (Qtmp == NULL) {
+        free_matrix(AT, n);
+        return failed;
+    }
+    
     double** Q = transpose(Qtmp, n, n);
+    if (Q == NULL) {
+        free_matrix(AT, n);
+        free_matrix(Qtmp, n);
+        return failed;
+    }
+    
     double** R = alloc_matrix(n, n);
+    if (R == NULL) {
+        free_matrix(AT, n);
+        free_matrix(Qtmp, n);
+        free_matrix(Q, n);
+        return failed;
+    }
+    
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             if (i > j) {
@@ -81,6 +131,7 @@ QR_Decomposition QR_decompose(double* const* A, int n) {
 
 double* diag(double* const* A, int n) {
     double* result = (double*)malloc(n * sizeof(double));
+    if (result == NULL) return NULL;
     for (int i = 0; i < n; i++) {
         result[i] = A[i][i];
     }
@@ -187,6 +238,7 @@ double** identity(int n) {
 
 double** partition(int m, double* const* A, int an, double* const* B, int bn) {
     double** result = alloc_matrix(m, an + bn);
+    if (result == NULL) return NULL;
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < an + bn; j++) {
             if (j < an) {
@@ -216,6 +268,7 @@ void add_multiple_row(double **A, int cols, int i, int j, double c) {
 }
 
 double** reduce_back(EliminationResult* result) {
+    if (result == NULL || result->rref == NULL) return NULL;
     double** A = copy_matrix(result->rref, result->m, result->n);
     if (A == NULL) return NULL;
     Node* pivot_ptr = result->pivots;
@@ -312,8 +365,16 @@ double wilkinson_shift(double** A, int n) {
 }
 
 EigenResult eigendecompose(double* const* A, int n, double tol) {
+    EigenResult failed = {NULL, NULL, 0, 0};
+    
     double** A_copy = copy_matrix(A, n, n);
+    if (A_copy == NULL) return failed;
+    
     double** V = identity(n);
+    if (V == NULL) {
+        free_matrix(A_copy, n);
+        return failed;
+    }
 
     int m = n;
     int max_iter_per_value = 1000;
@@ -326,7 +387,20 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
             for (int i = 0; i < m; i++) A_copy[i][i] -= mu;
 
             QR_Decomposition qr = QR_decompose(A_copy, m);
+            if (qr.Q == NULL || qr.R == NULL) {
+                free_matrix(A_copy, n);
+                free_matrix(V, n);
+                return failed;
+            }
+            
             double** RQ = multiply(qr.R, m, m, qr.Q, m, m);
+            if (RQ == NULL) {
+                free_matrix(qr.Q, m);
+                free_matrix(qr.R, m);
+                free_matrix(A_copy, n);
+                free_matrix(V, n);
+                return failed;
+            }
 
             for (int i = 0; i < m; i++) RQ[i][i] += mu;
 
@@ -336,6 +410,14 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
             free_matrix(RQ, m);
 
             double** Vblock = multiply(V, n, m, qr.Q, m, m);
+            if (Vblock == NULL) {
+                free_matrix(qr.Q, m);
+                free_matrix(qr.R, m);
+                free_matrix(A_copy, n);
+                free_matrix(V, n);
+                return failed;
+            }
+            
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < m; j++)
                     V[i][j] = Vblock[i][j];
@@ -346,14 +428,26 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
 
             if (fabs(A_copy[m-1][m-2]) < tol) { converged = 1; break; }
         }
-        m--;   // deflate regardless — even if not fully converged, avoids stalling forever
+        m--;
         (void)converged;
     }
 
     double* eigenvalues = diag(A_copy, n);
+    if (eigenvalues == NULL) {
+        free_matrix(A_copy, n);
+        free_matrix(V, n);
+        return failed;
+    }
+    
     free_matrix(A_copy, n);
 
     double** eigenvectors_rows = transpose(V, n, n);
+    if (eigenvectors_rows == NULL) {
+        free(eigenvalues);
+        free_matrix(V, n);
+        return failed;
+    }
+    
     free_matrix(V, n);
 
     return (EigenResult){
@@ -391,13 +485,30 @@ static void givens_right(double** T, int k, double c, double s, int rows) {
 }
 
 EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
-    double** T = copy_matrix(A, n, n);   // tridiagonal, kept dense for indexing simplicity
+    EigenResult failed = {NULL, NULL, 0, 0};
+    
+    double** T = copy_matrix(A, n, n);
+    if (T == NULL) return failed;
+    
     double** V = identity(n);
+    if (V == NULL) {
+        free_matrix(T, n);
+        return failed;
+    }
 
     int max_iter_per_value = 1000;
     double* ks_c = malloc((n - 1) * sizeof(double));
     double* ks_s = malloc((n - 1) * sizeof(double));
     int*    ks_k = malloc((n - 1) * sizeof(int));
+    
+    if (ks_c == NULL || ks_s == NULL || ks_k == NULL) {
+        free(ks_c);
+        free(ks_s);
+        free(ks_k);
+        free_matrix(T, n);
+        free_matrix(V, n);
+        return failed;
+    }
 
     int m = n;
     while (m > 1) {
@@ -430,9 +541,21 @@ EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
     free(ks_c); free(ks_s); free(ks_k);
 
     double* eigenvalues = diag(T, n);
+    if (eigenvalues == NULL) {
+        free_matrix(T, n);
+        free_matrix(V, n);
+        return failed;
+    }
+    
     free_matrix(T, n);
 
     double** eigenvectors_rows = transpose(V, n, n);
+    if (eigenvectors_rows == NULL) {
+        free(eigenvalues);
+        free_matrix(V, n);
+        return failed;
+    }
+    
     free_matrix(V, n);
 
     return (EigenResult){
