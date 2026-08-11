@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "matrices.h"
+#include "operations.h"
 
 static void print_array(const double a[], int n) {
     for (int i = 0; i < n; i++) {
@@ -99,6 +100,9 @@ int main(void) {
     free_matrix(QR, n);
     free_matrix(eigen.eigenvectors, eigen.count);
     free(eigen.eigenvalues);
+
+    printf("(should be 362,880) 9! = %d\n", factorial(9));
+    printf("(should be 15) 6C4 = %d\n", combination(6, 4));
 
     return 0;
 }
