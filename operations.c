@@ -1,6 +1,6 @@
 #include "operations.h"
 
-unsigned int factorial(unsigned int n) {
+double factorial(unsigned int n) {
     unsigned int result = n;
     for (int i = n - 1; i > 0; i--) {
         result *= i;
