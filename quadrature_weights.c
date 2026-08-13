@@ -1,6 +1,6 @@
 #include "quadrature_weights.h"
 
-double quadrature_estimate(int n, double* a, double* b, double beta_0, double (*f)(double, void*), void* ctx) {
+double quadrature_estimate(int n, double* a, double* b, double mu_0, double (*f)(double, void*), void* ctx) {
     double** J = alloc_matrix(n, n);
     if (J == NULL) return -1;
     for (int i = 0; i < n; i++) {
@@ -23,7 +23,7 @@ double quadrature_estimate(int n, double* a, double* b, double beta_0, double (*
     double sum = 0.0;
     for (int i = 0; i < n; i++) {
         double first_component = eigen_result.eigenvectors[i][0];
-        double weight = beta_0 * pow(first_component, 2);
+        double weight = mu_0 * pow(first_component, 2);
         double x_i = eigen_result.eigenvalues[i];
         sum += weight * f(x_i, ctx);
     }

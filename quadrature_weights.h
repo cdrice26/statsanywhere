@@ -3,5 +3,5 @@
 #include <math.h>
 #include <stdlib.h>
 #include "matrices.h"
-double quadrature_estimate(int n, double* a, double* b, double beta_0, double (*f)(double, void*), void* ctx);
+double quadrature_estimate(int n, double* a, double* b, double mu_0, double (*f)(double, void*), void* ctx);
 #endif
