@@ -109,6 +109,8 @@ int main(void) {
     printf("(Should be 413.40751) Gamma(6.7) = %f\n", gamma(6.7));
     printf("(Should be 0.9933) LGamma(1, 5) = %f\n", lower_incomplete_gamma(1, 5));
     printf("(Should be 1.8232) LGamma(3, 5.5) = %f\n", lower_incomplete_gamma(3, 5.5));
+    printf("(Should be 0.0833) Beta(3, 2) = %f\n", beta(3, 2));
+    printf("(Should be 0.00035) Beta(4, 10) = %f\n", beta(4, 10));
 
     return 0;
 }

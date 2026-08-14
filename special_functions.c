@@ -10,28 +10,6 @@ typedef struct {
     double x;
 } LowerIncompleteGammaCtx;
 
-// Original code using Gauss-Legendre - not precise enough
-
-// double gamma_integrand(double x, void* ctx) {
-//     double z = ((GammaCtx*)ctx)->z;
-//     return pow(-log((x + 1.0) / 2.0), z - 1.0);
-// }
-
-// double gamma(double z) {
-//     GammaCtx ctx = { z };
-//     int n = 300;
-//     double* alpha = malloc(n * sizeof(double));
-//     double* beta_sq = malloc((n - 1) * sizeof(double));
-//     for (int i = 0; i < n; i++) {
-//         alpha[i] = 0;
-//         if (i != n - 1) {
-//             beta_sq[i] = pow(i + 1, 2) / (4 * pow(i + 1, 2) - 1);
-//         }
-//     }
-//     double integral = quadrature_estimate(n, alpha, beta_sq, 2.0, gamma_integrand, &ctx);
-//     return 0.5 * integral;
-// }
-
 double gamma_integrand(double t, void* ctx) {
     double z = ((GammaCtx*)ctx)->z;
     return pow(t, z - 1.0);
@@ -84,4 +62,8 @@ double lower_incomplete_gamma(double s, double x) {
     free(alpha);
     free(beta_sq);
     return integral * outside_factor;
+}
+
+double beta(double z1, double z2) {
+    return (gamma(z1) * gamma(z2)) / gamma(z1 + z2);
 }

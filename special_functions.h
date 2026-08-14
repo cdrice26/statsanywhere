@@ -5,5 +5,6 @@
 
 double gamma(double z);
 double lower_incomplete_gamma(double s, double x);
+double beta(double z1, double z2);
 
 #endif
