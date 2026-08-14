@@ -111,6 +111,10 @@ int main(void) {
     printf("(Should be 1.8232) LGamma(3, 5.5) = %f\n", lower_incomplete_gamma(3, 5.5));
     printf("(Should be 0.0833) Beta(3, 2) = %f\n", beta(3, 2));
     printf("(Should be 0.00035) Beta(4, 10) = %f\n", beta(4, 10));
+    printf("(Should be 0.2613) IBeta(0.4, 1, 3) = %f\n", incomplete_beta(0.4, 1, 3));
+    printf("(Should be 0.0833) IBeta(1, 2, 3) = %f\n", incomplete_beta(1, 2, 3));
+    printf("(Should be 0.784) RIBeta(0.4, 1, 3) = %f\n", regularized_incomplete_beta(0.4, 1, 3));
+    printf("(Should be 1) RIBeta(1, 2, 3) = %f\n", regularized_incomplete_beta(1, 2, 3));
 
     return 0;
 }
