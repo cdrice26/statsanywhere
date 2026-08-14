@@ -4,6 +4,7 @@
 #include <math.h>
 #include "matrices.h"
 #include "operations.h"
+#include "special_functions.h"
 
 static void print_array(const double a[], int n) {
     for (int i = 0; i < n; i++) {
@@ -101,8 +102,13 @@ int main(void) {
     free_matrix(eigen.eigenvectors, eigen.count);
     free(eigen.eigenvalues);
 
-    printf("(should be 362,880) 9! = %d\n", factorial(9));
-    printf("(should be 15) 6C4 = %d\n", combination(6, 4));
+    printf("(should be 362,880) 9! = %f\n", factorial(9));
+    printf("(should be 15) 6C4 = %f\n", combination(6, 4));
+
+    printf("(Should be 24) Gamma(5) = %f\n", gamma(5.0));
+    printf("(Should be 413.40751) Gamma(6.7) = %f\n", gamma(6.7));
+    printf("(Should be 0.9933) LGamma(1, 5) = %f\n", lower_incomplete_gamma(1, 5));
+    printf("(Should be 1.8232) LGamma(3, 5.5) = %f\n", lower_incomplete_gamma(3, 5.5));
 
     return 0;
 }

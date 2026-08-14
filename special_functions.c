@@ -85,10 +85,3 @@ double lower_incomplete_gamma(double s, double x) {
     free(beta_sq);
     return integral * outside_factor;
 }
-
-int main() {
-    printf("(Should be 24) Gamma(5) = %f\n", gamma(5.0));
-    printf("(Should be 413.40751) Gamma(6.7) = %f\n", gamma(6.7));
-    printf("(Should be 0.9933) LGamma(1, 5) = %f\n", lower_incomplete_gamma(1, 5));
-    printf("(Should be 1.8232) LGamma(3, 5.5) = %f\n", lower_incomplete_gamma(3, 5.5));
-}
