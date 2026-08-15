@@ -3,7 +3,7 @@
 #include "operations.h"
 #include <math.h>
 
-double poissonpdf(int k, double lambda);
+double poissonpmf(int k, double lambda);
 double poissoncdf(double k, double lambda);
 
 #endif

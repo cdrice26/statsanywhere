@@ -1,5 +1,20 @@
 #include "quadrature_weights.h"
 
+/**
+ * @brief Estimate an integral using Gaussian quadrature from Jacobi matrix.
+ *
+ * Constructs the n-by-n Jacobi matrix from generator arrays a and b, finds
+ * its eigenvalues (nodes) and eigenvectors to compute weights, and then
+ * evaluates the provided integrand f at the nodes. Returns the weighted sum.
+ *
+ * @param n Number of quadrature nodes
+ * @param a Array of length n containing diagonal generators
+ * @param b Array of length n-1 containing squared off-diagonal generators
+ * @param mu_0 Zeroth moment / scaling factor for weight computation
+ * @param f Integrand function of a node and user context
+ * @param ctx User-provided context forwarded to f
+ * @return Estimated integral value, or negative on failure
+ */
 double quadrature_estimate(int n, double* a, double* b, double mu_0, double (*f)(double, void*), void* ctx) {
     double** J = alloc_matrix(n, n);
     if (J == NULL) return -1;

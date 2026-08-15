@@ -1,6 +1,16 @@
 #include "matrices.h"
 #include "linked_list.h"
 
+/**
+ * @brief Allocate an m-by-n matrix.
+ *
+ * Allocates an array of m pointers to rows and m row arrays of length n.
+ * Caller is responsible for freeing with free_matrix.
+ *
+ * @param m Number of rows
+ * @param n Number of columns
+ * @return Newly-allocated matrix (double**), or NULL on allocation failure
+ */
 double** alloc_matrix(int m, int n) {
     double** A = (double**)malloc(m * sizeof(double*));
     if (A == NULL) return NULL;
@@ -15,6 +25,14 @@ double** alloc_matrix(int m, int n) {
     return A;
 }
 
+/**
+ * @brief Free an m-row matrix previously returned by alloc_matrix.
+ *
+ * Frees each row and then the row-pointer array.
+ *
+ * @param A Matrix to free
+ * @param m Number of rows in A
+ */
 void free_matrix(double** A, int m) {
     for (int i = 0; i < m; i++) {
         free(A[i]);
@@ -22,6 +40,17 @@ void free_matrix(double** A, int m) {
     free(A);
 }
 
+/**
+ * @brief Make a deep copy of an m-by-n matrix.
+ *
+ * Allocates and returns a new matrix with the same contents as A. Caller
+ * must free the returned matrix with free_matrix.
+ *
+ * @param A Source matrix
+ * @param m Number of rows
+ * @param n Number of columns
+ * @return Newly-allocated copy of A, or NULL on allocation failure
+ */
 double** copy_matrix(double* const* A, int m, int n) {
     double** result = alloc_matrix(m, n);
     if (result == NULL) return NULL;
@@ -33,6 +62,17 @@ double** copy_matrix(double* const* A, int m, int n) {
     return result;
 }
 
+/**
+ * @brief Transpose an m-by-n matrix.
+ *
+ * Allocates and returns the n-by-m transpose of A. Caller must free the
+ * returned matrix with free_matrix.
+ *
+ * @param A Source matrix
+ * @param m Number of rows in A
+ * @param n Number of columns in A
+ * @return Transposed matrix (n-by-m), or NULL on allocation failure
+ */
 double** transpose(double* const* A, int m, int n) {
     double** AT = alloc_matrix(n, m);
     if (AT == NULL) return NULL;
@@ -44,6 +84,17 @@ double** transpose(double* const* A, int m, int n) {
     return AT;
 }
 
+/**
+ * @brief Perform Gram–Schmidt orthonormalization on n row-vectors.
+ *
+ * Treats A as an array of n row vectors of length n and returns an array of
+ * n orthonormal row vectors (Q). Caller must free the returned array and
+ * its rows with free_matrix.
+ *
+ * @param A Array of n input row-vectors
+ * @param n Dimension (number of rows and length of each row)
+ * @return Newly-allocated orthonormal rows (Q), or NULL on allocation failure
+ */
 double** gram_schmidt(double* const* A, int n) {
     double** Q = malloc(n * sizeof(double*));
     if (Q == NULL) return NULL;
@@ -87,6 +138,17 @@ double** gram_schmidt(double* const* A, int n) {
     return Q;
 }
 
+/**
+ * @brief Compute the QR decomposition of an n-by-n matrix.
+ *
+ * Returns Q and R such that A = Q * R where Q is orthonormal and R is
+ * upper-triangular. The returned QR_Decomposition contains allocated Q and R
+ * which the caller must free with free_matrix.
+ *
+ * @param A Input n-by-n matrix
+ * @param n Matrix dimension
+ * @return QR_Decomposition with .Q and .R set, or {NULL,NULL} on failure
+ */
 QR_Decomposition QR_decompose(double* const* A, int n) {
     QR_Decomposition failed = {NULL, NULL};
     
@@ -129,6 +191,16 @@ QR_Decomposition QR_decompose(double* const* A, int n) {
     return result;
 }
 
+/**
+ * @brief Extract the diagonal of an n-by-n matrix.
+ *
+ * Allocates and returns an array of length n containing A[i][i]. Caller must
+ * free the returned array.
+ *
+ * @param A Input matrix
+ * @param n Dimension
+ * @return Newly-allocated array of diagonal elements, or NULL on failure
+ */
 double* diag(double* const* A, int n) {
     double* result = (double*)malloc(n * sizeof(double));
     if (result == NULL) return NULL;
@@ -138,6 +210,20 @@ double* diag(double* const* A, int n) {
     return result;
 }
 
+/**
+ * @brief Add two matrices of identical shape.
+ *
+ * Allocates and returns a new ma-by-na matrix equal to A + B. Returns NULL if
+ * shapes mismatch or allocation fails. Caller must free the result.
+ *
+ * @param A First addend
+ * @param ma Rows in A
+ * @param na Columns in A
+ * @param B Second addend
+ * @param mb Rows in B
+ * @param nb Columns in B
+ * @return Newly-allocated sum matrix, or NULL on error
+ */
 double** add_matrices(double* const* A, int ma, int na, double* const* B, int mb, int nb) {
     if (ma != mb || na != nb) {
         return NULL;
@@ -157,6 +243,20 @@ double** add_matrices(double* const* A, int ma, int na, double* const* B, int mb
     return result;
 }
 
+/**
+ * @brief Subtract matrix B from A (A - B) for matching shapes.
+ *
+ * Allocates and returns a new matrix with the element-wise difference. Caller
+ * must free the returned matrix with free_matrix.
+ *
+ * @param A Minuend matrix
+ * @param ma Rows in A
+ * @param na Columns in A
+ * @param B Subtrahend matrix
+ * @param mb Rows in B
+ * @param nb Columns in B
+ * @return Newly-allocated difference matrix, or NULL on error
+ */
 double** subtract_matrices(double* const* A, int ma, int na, double* const* B, int mb, int nb) {
     if (ma != mb || na != nb) {
         return NULL;
@@ -177,6 +277,20 @@ double** subtract_matrices(double* const* A, int ma, int na, double* const* B, i
 }
 
 
+/**
+ * @brief Multiply two matrices A (ma-by-na) and B (mb-by-nb).
+ *
+ * Returns a newly-allocated ma-by-nb matrix equal to A * B. Returns NULL if
+ * inner dimensions mismatch or allocation fails. Caller must free result.
+ *
+ * @param A Left matrix
+ * @param ma Rows in A
+ * @param na Columns in A (must equal mb)
+ * @param B Right matrix
+ * @param mb Rows in B
+ * @param nb Columns in B
+ * @return Newly-allocated product matrix, or NULL on error
+ */
 double** multiply(double* const* A, int ma, int na, double* const* B, int mb, int nb) {
     if (na != mb) {
         return NULL;
@@ -200,6 +314,18 @@ double** multiply(double* const* A, int ma, int na, double* const* B, int mb, in
     return result;
 }
 
+/**
+ * @brief Multiply every element of a matrix by a scalar.
+ *
+ * Allocates and returns a new matrix where each element is A[i][j] * s.
+ * Caller must free the returned matrix.
+ *
+ * @param A Source matrix
+ * @param rows Number of rows
+ * @param cols Number of columns
+ * @param s Scalar multiplier
+ * @return Newly-allocated scaled matrix, or NULL on allocation failure
+ */
 double** multiply_matrix_by_scalar(double* const* A, int rows, int cols, double s) {
     double** R = malloc(rows * sizeof *R);
     if (!R) return NULL;
@@ -218,6 +344,15 @@ double** multiply_matrix_by_scalar(double* const* A, int rows, int cols, double 
     return R;
 }
 
+/**
+ * @brief Create an n-by-n identity matrix.
+ *
+ * Allocates and returns an identity matrix with 1.0 on the diagonal and
+ * 0.0 elsewhere. Caller must free the returned matrix.
+ *
+ * @param n Dimension
+ * @return Newly-allocated identity matrix, or NULL on allocation failure
+ */
 double** identity(int n) {
     double** A = malloc(n * sizeof *A);
     if (!A) return NULL;
@@ -236,6 +371,19 @@ double** identity(int n) {
     return A;
 }
 
+/**
+ * @brief Horizontally concatenate two m-row matrices A and B.
+ *
+ * Allocates and returns an m-by-(an+bn) matrix whose left block is A and
+ * right block is B. Caller must free the returned matrix.
+ *
+ * @param m Number of rows (must match for A and B)
+ * @param A Left block matrix with an columns
+ * @param an Number of columns in A
+ * @param B Right block matrix with bn columns
+ * @param bn Number of columns in B
+ * @return Newly-allocated concatenated matrix, or NULL on allocation failure
+ */
 double** partition(int m, double* const* A, int an, double* const* B, int bn) {
     double** result = alloc_matrix(m, an + bn);
     if (result == NULL) return NULL;
@@ -251,6 +399,15 @@ double** partition(int m, double* const* A, int an, double* const* B, int bn) {
     return result;
 }
 
+/**
+ * @brief Swap two rows of a matrix in-place.
+ *
+ * Exchanges the row pointers A[i] and A[j]. If i == j, nothing happens.
+ *
+ * @param A Matrix whose rows are swapped
+ * @param i Index of first row
+ * @param j Index of second row
+ */
 void swap_rows(double **A, int i, int j) {
     if (i == j) return;
     double *tmp = A[i];
@@ -258,15 +415,47 @@ void swap_rows(double **A, int i, int j) {
     A[j] = tmp;
 }
 
+/**
+ * @brief Scale a row by a constant factor.
+ *
+ * Multiplies each element of row i by c across the given number of columns.
+ *
+ * @param A Matrix
+ * @param cols Number of columns in A
+ * @param i Row index to scale
+ * @param c Scaling factor
+ */
 void scale_row(double **A, int cols, int i, double c) {
     for (int k = 0; k < cols; ++k) A[i][k] *= c;
 }
 
+/**
+ * @brief Add a multiple of row j to row i (row_i += c * row_j).
+ *
+ * If c is zero the function returns early. Operates across the given number
+ * of columns.
+ *
+ * @param A Matrix
+ * @param cols Number of columns in A
+ * @param i Destination row index
+ * @param j Source row index
+ * @param c Multiplier applied to row j before adding
+ */
 void add_multiple_row(double **A, int cols, int i, int j, double c) {
     if (c == 0.0) return;
     for (int k = 0; k < cols; ++k) A[i][k] += c * A[j][k];
 }
 
+/**
+ * @brief Perform the back-substitution step of Gauss elimination.
+ *
+ * Given an EliminationResult containing rref and pivot positions, produces
+ * a matrix with zeros above pivots by eliminating upward. Returns a newly
+ * allocated matrix which the caller must free.
+ *
+ * @param result Pointer to EliminationResult containing rref, dimensions and pivots
+ * @return Newly-allocated post-back-substitution matrix, or NULL on error
+ */
 double** reduce_back(EliminationResult* result) {
     if (result == NULL || result->rref == NULL) return NULL;
     double** A = copy_matrix(result->rref, result->m, result->n);
@@ -282,6 +471,23 @@ double** reduce_back(EliminationResult* result) {
     return A;
 }
 
+/**
+ * @brief Compute row-reduced echelon form (RREF) with pivot tracking.
+ *
+ * Performs forward elimination with partial pivoting up to pivot_col_limit
+ * and returns an EliminationResult containing the rref matrix, its
+ * dimensions, and a linked-list of pivot Points. The returned rref matrix is
+ * allocated and must be freed by the caller. The pivot list must also be
+ * freed with free_linked_list.
+ *
+ * @param A Input m-by-n matrix (not modified)
+ * @param m Number of rows
+ * @param n Number of columns
+ * @param pivot_col_limit Maximum column index to consider for pivots
+ * @param tol Tolerance for considering a value non-zero
+ * @return EliminationResult with rref, dimensions, and pivot list; on
+ *         failure rref will be NULL
+ */
 EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, double tol) {
     Node* pivot_list = create_linked_list();
     double** B = copy_matrix(A, m, n);
@@ -354,6 +560,16 @@ EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, do
     return result;
 }
 
+/**
+ * @brief Compute Wilkinson shift for the bottom-right 2x2 block.
+ *
+ * Returns the Wilkinson shift value used to accelerate QR iteration for
+ * eigenvalue computation on the trailing m-by-m block.
+ *
+ * @param A Matrix containing the trailing block
+ * @param n Dimension of the (square) matrix
+ * @return Wilkinson shift scalar
+ */
 double wilkinson_shift(double** A, int n) {
     double a = A[n-2][n-2];
     double b = A[n-2][n-1];
@@ -364,6 +580,19 @@ double wilkinson_shift(double** A, int n) {
     return c - sign * (b * b) / (fabs(delta) + sqrt(delta * delta + b * b));
 }
 
+/**
+ * @brief Compute eigenvalues and eigenvectors (QR algorithm).
+ *
+ * Uses shifted QR iterations to compute eigenvalues and eigenvectors of an
+ * n-by-n matrix A. Returns EigenResult containing allocated eigenvalues
+ * (array of length n) and eigenvectors (n row-vectors). Caller must free
+ * these using free_eigen_result.
+ *
+ * @param A Input n-by-n matrix
+ * @param n Dimension
+ * @param tol Convergence tolerance for off-diagonal entries
+ * @return EigenResult with eigenvalues and eigenvectors; on failure fields are NULL
+ */
 EigenResult eigendecompose(double* const* A, int n, double tol) {
     EigenResult failed = {NULL, NULL, 0, 0};
     
@@ -458,6 +687,17 @@ EigenResult eigendecompose(double* const* A, int n, double tol) {
     };
 }
 
+/**
+ * @brief Wilkinson shift for a 2x2 tridiagonal block.
+ *
+ * Variant of the Wilkinson shift specialized for tridiagonal matrices where
+ * the 2x2 block is [a b; b c]. This function is static/internal.
+ *
+ * @param a Top-left element
+ * @param b Off-diagonal element
+ * @param c Bottom-right element
+ * @return Shift value
+ */
 static double wilkinson_shift_tridiagonal(double a, double b, double c) {
     double delta = (a - c) / 2.0;
     double sign = (delta >= 0.0) ? 1.0 : -1.0;
@@ -466,7 +706,19 @@ static double wilkinson_shift_tridiagonal(double a, double b, double c) {
     return (denom != 0.0) ? c - sign * (b * b) / denom : c;
 }
 
-// Rotate rows k, k+1 of an m-wide-active row (in place), first `width` columns.
+/**
+ * @brief Apply Givens rotation to rows k and k+1 (left multiplication).
+ *
+ * Rotates rows k and k+1 in-place over the first `width` columns using
+ * cosine c and sine s. Intended for applying Givens rotations from the
+ * left.
+ *
+ * @param T Matrix to modify
+ * @param k Row index of the first row
+ * @param c Cosine component of rotation
+ * @param s Sine component of rotation
+ * @param width Number of columns to rotate
+ */
 static void givens_left(double** T, int k, double c, double s, int width) {
     for (int j = 0; j < width; j++) {
         double a = T[k][j], b = T[k + 1][j];
@@ -475,7 +727,19 @@ static void givens_left(double** T, int k, double c, double s, int width) {
     }
 }
 
-// Rotate columns k, k+1, over the first `rows` rows.
+/**
+ * @brief Apply Givens rotation to columns k and k+1 (right multiplication).
+ *
+ * Rotates columns k and k+1 in-place over the first `rows` rows using
+ * cosine c and sine s. Intended for applying Givens rotations from the
+ * right.
+ *
+ * @param T Matrix to modify
+ * @param k Column index of the first column
+ * @param c Cosine component of rotation
+ * @param s Sine component of rotation
+ * @param rows Number of rows to rotate
+ */
 static void givens_right(double** T, int k, double c, double s, int rows) {
     for (int i = 0; i < rows; i++) {
         double a = T[i][k], b = T[i][k + 1];
@@ -484,6 +748,19 @@ static void givens_right(double** T, int k, double c, double s, int rows) {
     }
 }
 
+/**
+ * @brief Compute eigen-decomposition for a symmetric tridiagonal matrix.
+ *
+ * Uses Givens rotations and shifted QR tailored to tridiagonal matrices to
+ * compute eigenvalues and eigenvectors. Returns allocated eigenvalues and
+ * eigenvectors (rows) which must be freed by the caller via
+ * free_eigen_result.
+ *
+ * @param A Input n-by-n tridiagonal matrix
+ * @param n Dimension
+ * @param tol Convergence tolerance
+ * @return EigenResult with eigenvalues and eigenvectors; on failure fields are NULL
+ */
 EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
     EigenResult failed = {NULL, NULL, 0, 0};
     
@@ -566,6 +843,14 @@ EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
     };
 }
 
+/**
+ * @brief Free memory held by an EigenResult.
+ *
+ * Frees the eigenvectors matrix and eigenvalues array inside r and resets
+ * the structure to zero.
+ *
+ * @param r Pointer to EigenResult to free/clear
+ */
 void free_eigen_result(EigenResult* r) {
     if (r->eigenvectors) {
         free_matrix(r->eigenvectors, r->count);
