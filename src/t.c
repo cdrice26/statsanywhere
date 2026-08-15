@@ -27,12 +27,18 @@ double tpdf(double t, int df) {
  * @return CDF value
  */
 double tcdf(double t, int df) {
+    /* Use identity I_x(a,b) = 1 - I_{1-x}(b,a) to improve numerical stability.
+       For t >= 0: CDF = 1 - 0.5 * I_x(a,0.5) = 0.5 + 0.5 * I_{1-x}(0.5,a)
+       For t < 0: CDF = 0.5 - 0.5 * I_{1-x}(0.5,a)
+    */
     double x = df / (pow(t, 2) + df);
-    return 1.0 - 0.5 * regularized_incomplete_beta(x, df / 2.0, 0.5);
+    double a = df / 2.0;
+    double b = 0.5;
+    double ix_comp = regularized_incomplete_beta(1.0 - x, b, a);
+    if (t >= 0) {
+        return 0.5 + 0.5 * ix_comp;
+    } else {
+        return 0.5 - 0.5 * ix_comp;
+    }
 }
 
-int main() {
-    printf("(Should be .0173) tpdf(3, 5) = %f\n", tpdf(3, 5));
-    printf("(Should be .985) tcdf(3, 5) = %f\n", tcdf(3, 5));
-    printf("(Should be .681) tcdf(0.5, 5) = %f\n", tcdf(0.5, 5));
-}
