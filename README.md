@@ -11,4 +11,7 @@ Probably not. It's not nearly as battle-tested as most scientific libraries, and
 Yes, the library has documentation comments and a complete API documentation is available [here](./API.md).
 
 ## How Do I Build It?
-StatsAnywhere is very simple to build. Simply run the `compile.sh` file and then include `statsanywhere.h` in your project. Be sure to link with the compiled output file.
+StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the app, use the `scripts/build.py` script, then link against the produced static library like any other C library.
+
+## Running Tests
+You can run tests with `scripts/test.py`. Note that if you change any tests and need to regenerate the reference file, you'll need to edit `scripts/generate_reference.py` to produce the correct file, then create a `venv`, install scipy, and run `scripts/generate_reference.py` inside it.
