@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+# type: ignore
+
 """Cross-platform builder for the library target (statsanywhere).
 
 Usage:

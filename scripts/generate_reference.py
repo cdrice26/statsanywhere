@@ -1,3 +1,5 @@
+# type: ignore
+
 """
 Generate reference_values.txt using SciPy. Exits with non-zero if SciPy is not available.
 

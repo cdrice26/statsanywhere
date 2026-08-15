@@ -82,3 +82,23 @@ int length(Node *head) {
     }
     return len;
 }
+
+/**
+ * @brief Returns a dynamically allocated array of all stored data in the list.
+ *
+ * The caller is responsible for freeing the returned array using free().
+ *
+ * @param head Pointer to the head of the list
+ * @return Pointer to the array of data, or NULL if allocation fails
+ */
+void** get_data(Node *head) {
+    int len = length(head);
+    void **data = malloc(len * sizeof(void*));
+    if (data == NULL) return NULL;
+    Node *temp = head;
+    for (int i = 0; i < len; i++) {
+        data[i] = temp->data;
+        temp = temp->next;
+    }
+    return data;
+}

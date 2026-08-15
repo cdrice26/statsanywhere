@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+# type: ignore
+
 """Cross-platform test runner for this repository.
 
 Replaces scripts/test.sh with a Python script so other scripts stay Python-based
@@ -28,14 +29,14 @@ def main():
     run(["cmake", "-S", str(ROOT), "-B", str(BUILD_DIR)])
 
     # Build the test runner target
-    run(["cmake", "--build", str(BUILD_DIR), "--target", "test_runner", "--config", "Release"]) 
+    run(["cmake", "--build", str(BUILD_DIR), "--target", "test_runner", "--config", "Release"])
 
     # Run tests with ctest if available; otherwise try RUN_TESTS target as a fallback
     if shutil.which("ctest"):
         run(["ctest", "-V"], cwd=str(BUILD_DIR))
     else:
         print("'ctest' not found in PATH; attempting to run tests via CMake target 'RUN_TESTS'", file=sys.stderr)
-        run(["cmake", "--build", str(BUILD_DIR), "--target", "RUN_TESTS", "--config", "Release"]) 
+        run(["cmake", "--build", str(BUILD_DIR), "--target", "RUN_TESTS", "--config", "Release"])
 
 
 if __name__ == "__main__":

@@ -98,7 +98,7 @@ double** transpose(double* const* A, int m, int n) {
 double** gram_schmidt(double* const* A, int n) {
     double** Q = malloc(n * sizeof(double*));
     if (Q == NULL) return NULL;
-    
+
     for (int i = 0; i < n; i++) {
         Q[i] = copy_vector(A[i], n);
         if (Q[i] == NULL) {
@@ -151,23 +151,23 @@ double** gram_schmidt(double* const* A, int n) {
  */
 QR_Decomposition QR_decompose(double* const* A, int n) {
     QR_Decomposition failed = {NULL, NULL};
-    
+
     double** AT = transpose(A, n, n);
     if (AT == NULL) return failed;
-    
+
     double** Qtmp = gram_schmidt(AT, n);
     if (Qtmp == NULL) {
         free_matrix(AT, n);
         return failed;
     }
-    
+
     double** Q = transpose(Qtmp, n, n);
     if (Q == NULL) {
         free_matrix(AT, n);
         free_matrix(Qtmp, n);
         return failed;
     }
-    
+
     double** R = alloc_matrix(n, n);
     if (R == NULL) {
         free_matrix(AT, n);
@@ -175,7 +175,7 @@ QR_Decomposition QR_decompose(double* const* A, int n) {
         free_matrix(Q, n);
         return failed;
     }
-    
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             if (i > j) {
@@ -561,133 +561,6 @@ EliminationResult reduce(double* const* A, int m, int n, int pivot_col_limit, do
 }
 
 /**
- * @brief Compute Wilkinson shift for the bottom-right 2x2 block.
- *
- * Returns the Wilkinson shift value used to accelerate QR iteration for
- * eigenvalue computation on the trailing m-by-m block.
- *
- * @param A Matrix containing the trailing block
- * @param n Dimension of the (square) matrix
- * @return Wilkinson shift scalar
- */
-double wilkinson_shift(double** A, int n) {
-    double a = A[n-2][n-2];
-    double b = A[n-2][n-1];
-    double c = A[n-1][n-1];
-    double delta = (a - c) / 2.0;
-    double sign = (delta >= 0) ? 1.0 : -1.0;
-    if (delta == 0.0) sign = 1.0;
-    return c - sign * (b * b) / (fabs(delta) + sqrt(delta * delta + b * b));
-}
-
-/**
- * @brief Compute eigenvalues and eigenvectors (QR algorithm).
- *
- * Uses shifted QR iterations to compute eigenvalues and eigenvectors of an
- * n-by-n matrix A. Returns EigenResult containing allocated eigenvalues
- * (array of length n) and eigenvectors (n row-vectors). Caller must free
- * these using free_eigen_result.
- *
- * @param A Input n-by-n matrix
- * @param n Dimension
- * @param tol Convergence tolerance for off-diagonal entries
- * @return EigenResult with eigenvalues and eigenvectors; on failure fields are NULL
- */
-EigenResult eigendecompose(double* const* A, int n, double tol) {
-    EigenResult failed = {NULL, NULL, 0, 0};
-    
-    double** A_copy = copy_matrix(A, n, n);
-    if (A_copy == NULL) return failed;
-    
-    double** V = identity(n);
-    if (V == NULL) {
-        free_matrix(A_copy, n);
-        return failed;
-    }
-
-    int m = n;
-    int max_iter_per_value = 1000;
-
-    while (m > 1) {
-        int converged = 0;
-        for (int iter = 0; iter < max_iter_per_value; iter++) {
-            double mu = wilkinson_shift(A_copy, m);
-
-            for (int i = 0; i < m; i++) A_copy[i][i] -= mu;
-
-            QR_Decomposition qr = QR_decompose(A_copy, m);
-            if (qr.Q == NULL || qr.R == NULL) {
-                free_matrix(A_copy, n);
-                free_matrix(V, n);
-                return failed;
-            }
-            
-            double** RQ = multiply(qr.R, m, m, qr.Q, m, m);
-            if (RQ == NULL) {
-                free_matrix(qr.Q, m);
-                free_matrix(qr.R, m);
-                free_matrix(A_copy, n);
-                free_matrix(V, n);
-                return failed;
-            }
-
-            for (int i = 0; i < m; i++) RQ[i][i] += mu;
-
-            for (int i = 0; i < m; i++)
-                for (int j = 0; j < m; j++)
-                    A_copy[i][j] = RQ[i][j];
-            free_matrix(RQ, m);
-
-            double** Vblock = multiply(V, n, m, qr.Q, m, m);
-            if (Vblock == NULL) {
-                free_matrix(qr.Q, m);
-                free_matrix(qr.R, m);
-                free_matrix(A_copy, n);
-                free_matrix(V, n);
-                return failed;
-            }
-            
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < m; j++)
-                    V[i][j] = Vblock[i][j];
-            free_matrix(Vblock, n);
-
-            free_matrix(qr.Q, m);
-            free_matrix(qr.R, m);
-
-            if (fabs(A_copy[m-1][m-2]) < tol) { converged = 1; break; }
-        }
-        m--;
-        (void)converged;
-    }
-
-    double* eigenvalues = diag(A_copy, n);
-    if (eigenvalues == NULL) {
-        free_matrix(A_copy, n);
-        free_matrix(V, n);
-        return failed;
-    }
-    
-    free_matrix(A_copy, n);
-
-    double** eigenvectors_rows = transpose(V, n, n);
-    if (eigenvectors_rows == NULL) {
-        free(eigenvalues);
-        free_matrix(V, n);
-        return failed;
-    }
-    
-    free_matrix(V, n);
-
-    return (EigenResult){
-        .eigenvalues = eigenvalues,
-        .eigenvectors = eigenvectors_rows,
-        .n = n,
-        .count = n
-    };
-}
-
-/**
  * @brief Wilkinson shift for a 2x2 tridiagonal block.
  *
  * Variant of the Wilkinson shift specialized for tridiagonal matrices where
@@ -763,10 +636,10 @@ static void givens_right(double** T, int k, double c, double s, int rows) {
  */
 EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
     EigenResult failed = {NULL, NULL, 0, 0};
-    
+
     double** T = copy_matrix(A, n, n);
     if (T == NULL) return failed;
-    
+
     double** V = identity(n);
     if (V == NULL) {
         free_matrix(T, n);
@@ -777,7 +650,7 @@ EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
     double* ks_c = malloc((n - 1) * sizeof(double));
     double* ks_s = malloc((n - 1) * sizeof(double));
     int*    ks_k = malloc((n - 1) * sizeof(int));
-    
+
     if (ks_c == NULL || ks_s == NULL || ks_k == NULL) {
         free(ks_c);
         free(ks_s);
@@ -823,7 +696,7 @@ EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
         free_matrix(V, n);
         return failed;
     }
-    
+
     free_matrix(T, n);
 
     double** eigenvectors_rows = transpose(V, n, n);
@@ -832,7 +705,7 @@ EigenResult eigendecompose_tridiagonal(double* const* A, int n, double tol) {
         free_matrix(V, n);
         return failed;
     }
-    
+
     free_matrix(V, n);
 
     return (EigenResult){

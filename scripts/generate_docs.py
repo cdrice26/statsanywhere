@@ -1,3 +1,5 @@
+# type: ignore
+
 import re
 import os
 import sys

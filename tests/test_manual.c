@@ -1,4 +1,3 @@
-#define UNITY_INCLUDE_DOUBLE
 #include "unity.h"
 
 #include <stdio.h>
@@ -7,6 +6,8 @@
 
 #include "operations.h"
 #include "special_functions.h"
+#include "matrices.h"
+#include "linked_list.h"
 
 static const double EPS = 1e-6;
 
@@ -45,6 +46,19 @@ static int get_expected(const char *name, const char *args, double *out) {
         TEST_FAIL_MESSAGE("Reference value not found in tests/reference_values.txt");
         return 0;
 }
+
+/* Helper: compute the maximum absolute difference between two matrices */
+static double max_abs_diff(double** A, double** B, int n) {
+    double maxv = 0.0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            double d = fabs(A[i][j] - B[i][j]);
+            if (d > maxv) maxv = d;
+        }
+    }
+    return maxv;
+}
+
 /* setUp/tearDown are provided by the test runner */
 
 void test_factorial_and_combination(void) {
@@ -101,3 +115,42 @@ void test_erf_values(void) {
     TEST_ASSERT_DOUBLE_WITHIN(1e-6, expected, erf(0.5));
 }
 
+void test_matrix_functions(void) {
+    int n = 3;
+
+    double** A = alloc_matrix(n, n);
+    A[0][0] = 2;  A[0][1] = -1; A[0][2] = 4;
+    A[1][0] = -1;   A[1][1] = 3; A[1][2] = 0;
+    A[2][0] = 4;  A[2][1] = 0;  A[2][2] = 5;
+
+    EliminationResult res = reduce(A, n, n, n, 1e-6);
+    double** rref = res.rref;
+    void** pivots = get_data(res.pivots);
+    for (int i = 0; i < 3; i++) {
+        int val = *(int*)pivots[i];
+        TEST_ASSERT_EQUAL_INT(i, val);
+    }
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 1, rref[0][0]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 1, rref[1][1]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 1, rref[2][2]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[0][1]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[1][2]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[2][0]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[0][2]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[1][0]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, rref[2][1]);
+    TEST_ASSERT_EQUAL_INT(3, res.m);
+    TEST_ASSERT_EQUAL_INT(3, res.n);
+
+    free_linked_list(res.pivots, NULL);
+    free(pivots);
+    free_matrix(res.rref, n);
+
+    QR_Decomposition qr = QR_decompose(A, n);
+    double** QR = multiply(qr.Q, n, n, qr.R, n, n);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-6, 0, max_abs_diff(QR, A, n));
+    free_matrix(qr.Q, n);
+    free_matrix(qr.R, n);
+    free_matrix(QR, n);
+    free_matrix(A, n);
+}

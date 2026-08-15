@@ -12,5 +12,6 @@ Node* create_linked_list(void);
 int push(Node *head, void *data);
 void free_linked_list(Node *head, void (*free_data)(void*));
 int length(Node *head);
+void** get_data(Node *head);
 
 #endif

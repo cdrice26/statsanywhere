@@ -1,4 +1,3 @@
-#define UNITY_INCLUDE_DOUBLE
 #include "unity.h"
 
 #include <stdio.h>
@@ -57,6 +56,7 @@ static int get_expected(const char *name, const char *args, double *out) {
     TEST_FAIL_MESSAGE("Reference value not found in tests/reference_values.txt");
     return 0;
 }
+
 /* setUp/tearDown are provided by the test runner */
 
 void test_binomial_examples(void) {

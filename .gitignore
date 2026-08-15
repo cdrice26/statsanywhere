@@ -6,3 +6,5 @@ dist/**/*
 tests/unity
 scripts/venv
 build
+.cache
+compile_commands.json

@@ -1,4 +1,3 @@
-#define UNITY_INCLUDE_DOUBLE
 #include "unity.h"
 
 /* declare test functions from other translation units */
@@ -13,6 +12,7 @@ void test_factorial_and_combination(void);
 void test_gamma_and_incomplete(void);
 void test_beta_and_incomplete_beta(void);
 void test_erf_values(void);
+void test_matrix_functions(void);
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -30,6 +30,7 @@ int main(void) {
     RUN_TEST(test_gamma_and_incomplete);
     RUN_TEST(test_beta_and_incomplete_beta);
     RUN_TEST(test_erf_values);
+    RUN_TEST(test_matrix_functions);
 
     return UNITY_END();
 }
