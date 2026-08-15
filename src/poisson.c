@@ -35,7 +35,3 @@ double poissoncdf(double k, double lambda) {
     return result * exp(-lambda);
 }
 
-int main() {
-    printf("poissonpdf(3, 5) (should be 0.140374) = %f\n", poissonpmf(3, 5));
-    printf("poissoncdf(3, 5) (should be 0.265026) = %f\n", poissoncdf(3, 5));
-}

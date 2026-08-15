@@ -2,3 +2,7 @@
 **/.DS_Store
 pfi
 optest
+dist/**/*
+tests/unity
+scripts/venv
+build

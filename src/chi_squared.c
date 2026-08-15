@@ -32,7 +32,3 @@ double X2cdf(double x, int df) {
     return lower_incomplete_gamma(df / 2.0, x / 2.0) / gamma(df / 2.0);
 }
 
-int main() {
-    printf("(Should be .073) X2pdf(5, 3) = %f\n", X2pdf(5, 3));
-    printf("(Should be .828) X2cdf(5, 3) = %f\n", X2cdf(5, 3));
-}

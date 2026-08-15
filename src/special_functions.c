@@ -169,7 +169,7 @@ double lower_incomplete_gamma(double s, double x) {
  */
 double incomplete_beta(double x, double a, double b) {
     IncompleteBetaCtx ctx = { x, a, b };
-    int n = 50;
+    int n = 100;
     double* alpha = malloc(n * sizeof(double));
     double* beta_sq = malloc((n - 1) * sizeof(double));
     set_jacobi_matrix_generators_incomplete(alpha, beta_sq, n, a);
@@ -196,16 +196,16 @@ double regularized_incomplete_beta(double x, double a, double b) {
 }
 
 /**
- * @brief Compute the Beta function via Gamma functions.
+ * @brief Compute the Beta function using the incomplete Beta function;
  *
- * Uses the identity Beta(z1,z2) = Gamma(z1)*Gamma(z2)/Gamma(z1+z2).
+ * Computes the Beta function. Uses the identity B(z1, z2) = B(1; z1, z2)
  *
  * @param z1 First argument
  * @param z2 Second argument
  * @return Beta(z1, z2)
  */
 double beta(double z1, double z2) {
-    return (gamma(z1) * gamma(z2)) / gamma(z1 + z2);
+    return incomplete_beta(1, z1, z2);
 }
 
 /**

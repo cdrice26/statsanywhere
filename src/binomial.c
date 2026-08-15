@@ -33,9 +33,3 @@ double binomcdf(int n, double k, double p) {
     return result;
 }
 
-int main() {
-    printf("binompdf(5, 3, .7) (should be 0.308700) = %f\n", binompmf(5, 3, 0.7));
-    printf("binomcdf(6, 2, .7) (should be 0.070470) = %f\n", binomcdf(6, 2, 0.7));
-    printf("binompdf(100, 50, .7) (should be 0.000013) = %f\n", binompmf(100, 50, 0.7));
-    printf("binomcdf(100, 50, .7) (should be 0.000022) = %f\n", binomcdf(100, 50, 0.7));
-}

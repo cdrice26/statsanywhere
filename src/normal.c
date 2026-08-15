@@ -71,8 +71,3 @@ double normalcdf(double lower, double upper, double mu, double sigma) {
     return normalcdf_std(z_lower, z_upper);
 }
 
-int main() {
-    printf("Phi(1) (should be .841) = %f\n", Phi(1));
-    printf("normalcdf_std(-1, 1) (should be .683) = %f\n", normalcdf_std(-1, 1));
-    printf("normalcdf(-1, 1, 1, 2) (should be .341) = %f\n", normalcdf(-1, 1, 1, 2));
-}
