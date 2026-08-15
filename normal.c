@@ -1,9 +1,5 @@
 #include "normal.h"
 
-typedef struct {
-    double max;
-} MaxVal;
-
 double normalpdf_std(double z) {
     return exp(-pow(z, 2) / 2) / sqrt(2 * M_PI);
 }
