@@ -20,8 +20,6 @@ double tpdf(double t, int df) {
  * Computes the lower-tail CDF P(T <= t) using a relationship with the
  * regularized incomplete beta function.
  *
- * @warning Not quite as precise as some other functions due to multiple quadratures being used
- *
  * @param t Point to evaluate
  * @param df Degrees of freedom
  * @return CDF value
@@ -41,4 +39,3 @@ double tcdf(double t, int df) {
         return 0.5 - 0.5 * ix_comp;
     }
 }
-
