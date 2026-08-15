@@ -8,7 +8,7 @@ The intention was mostly for this to be a learning project into the underpinning
 Probably not. It's not nearly as battle-tested as most scientific libraries, and some functions produce noticeably less precise output. Additionally, since the goal was just to get probability functions working, it's not really a full scientific library anyway. Feel free to download it and play around with it, but it's definitely not production-ready.
 
 ## Is It Documented?
-Yes, the library has documentation comments and a complete API documentation is available [here](./API.md).
+Yes, the library has documentation comments and API documentation is available [here](./API.md).
 
 ## How Do I Build It?
 StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the app, use the `scripts/build.py` script, then link against the produced static library like any other C library.
