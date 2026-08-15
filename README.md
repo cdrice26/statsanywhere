@@ -21,4 +21,4 @@ curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.
 curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.h -o tests/unity/include/unity.h
 curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity_internals.h -o tests/unity/include/unity_internals.h
 ```
-You can then run tests with `scripts/test.py`. Note that if you change any tests and need to regenerate the reference file, you'll need to edit `scripts/generate_reference.py` to produce the correct file, then create a `venv`, install scipy, and run `scripts/generate_reference.py` inside it.
+You can then run tests with `scripts/test.py`. The library's output is validated against SciPy, so note that if you change any tests and need to regenerate the reference file, you'll need to edit `scripts/generate_reference.py` to produce the correct file, then create a `venv`, install scipy, and run `scripts/generate_reference.py` inside it.
