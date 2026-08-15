@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "quadrature_weights.h"
+#include "special_functions.h"
 
 double normalpdf_std(double z);
 double normalpdf(double z, double mu, double sigma);

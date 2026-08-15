@@ -5,6 +5,8 @@ typedef struct {
     double z;
 } GammaCtx;
 
+typedef GammaCtx ErrorCtx;
+
 typedef struct {
     double s;
     double x;
@@ -33,6 +35,12 @@ double incomplete_beta_integrand(double t, void* ctx) {
     double x = bctx->x;
     double b = bctx->b;
     return pow(1 - (x / 2.0) * (t + 1.0), b - 1);
+}
+
+double erf_integrand(double t, void* ctx) {
+    ErrorCtx* ectx = (ErrorCtx*)ctx;
+    double z = ectx->z;
+    return exp(-pow((z / 2.0) * (t + 1), 2));
 }
 
 void set_jacobi_matrix_generators_incomplete(double* alpha, double* beta_sq, int n, double s) {
@@ -101,4 +109,22 @@ double regularized_incomplete_beta(double x, double a, double b) {
 
 double beta(double z1, double z2) {
     return (gamma(z1) * gamma(z2)) / gamma(z1 + z2);
+}
+
+double erf(double z) {
+    ErrorCtx ctx = { z };
+    int n = 50;
+    double* alpha = malloc(n * sizeof(double));
+    double* beta_sq = malloc((n - 1) * sizeof(double));
+    for (int i = 0; i < n; i++) {
+        alpha[i] = 0;
+        if (i != n - 1) {
+            beta_sq[i] = pow(i + 1, 2) / (4 * pow(i + 1, 2) - 1);
+        }
+    }
+    double outside_factor = z / sqrt(M_PI);
+    double integral = quadrature_estimate(n, alpha, beta_sq, 2.0, erf_integrand, &ctx);
+    free(alpha);
+    free(beta_sq);
+    return integral * outside_factor;
 }

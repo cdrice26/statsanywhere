@@ -115,6 +115,9 @@ int main(void) {
     printf("(Should be 0.0833) IBeta(1, 2, 3) = %f\n", incomplete_beta(1, 2, 3));
     printf("(Should be 0.784) RIBeta(0.4, 1, 3) = %f\n", regularized_incomplete_beta(0.4, 1, 3));
     printf("(Should be 1) RIBeta(1, 2, 3) = %f\n", regularized_incomplete_beta(1, 2, 3));
+    printf("(Should be 0.8427) erf(1) = %f\n", erf(1));
+    printf("(Should be 0.5205) erf(0.5) = %f\n", erf(0.5));
+
 
     return 0;
 }

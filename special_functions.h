@@ -8,5 +8,6 @@ double lower_incomplete_gamma(double s, double x);
 double beta(double z1, double z2);
 double incomplete_beta(double x, double a, double b);
 double regularized_incomplete_beta(double x, double a, double b);
+double erf(double z);
 
 #endif
