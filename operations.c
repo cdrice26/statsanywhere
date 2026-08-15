@@ -3,8 +3,9 @@
 /**
  * @brief Compute the factorial of n.
  *
- * Returns n! as a double. Uses iterative multiplication. Note: the
- * implementation does not perform overflow checks for large n.
+ * Returns n! as a double. Uses iterative multiplication.
+ *
+ * @warning the implementation does not perform overflow checks for large n.
  *
  * @param n Non-negative integer
  * @return n! as a double
