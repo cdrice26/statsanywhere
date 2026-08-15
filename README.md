@@ -14,4 +14,11 @@ Yes, the library has documentation comments and a complete API documentation is 
 StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the app, use the `scripts/build.py` script, then link against the produced static library like any other C library.
 
 ## Running Tests
-You can run tests with `scripts/test.py`. Note that if you change any tests and need to regenerate the reference file, you'll need to edit `scripts/generate_reference.py` to produce the correct file, then create a `venv`, install scipy, and run `scripts/generate_reference.py` inside it.
+Testing uses [Unity](https://www.throwtheswitch.org/unity). Before running tests, it is necessary to install unity into the project. To do so (in a POSIX-compliant shell) run the following:
+```bash
+mkdir -p tests/unity/src tests/unity/include
+curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.c -o tests/unity/src/unity.c
+curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity.h -o tests/unity/include/unity.h
+curl -L https://raw.githubusercontent.com/ThrowTheSwitch/Unity/master/src/unity_internals.h -o tests/unity/include/unity_internals.h
+```
+You can then run tests with `scripts/test.py`. Note that if you change any tests and need to regenerate the reference file, you'll need to edit `scripts/generate_reference.py` to produce the correct file, then create a `venv`, install scipy, and run `scripts/generate_reference.py` inside it.
