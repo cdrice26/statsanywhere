@@ -14,6 +14,8 @@ Yes, the library has documentation comments and API documentation is available [
 StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the app, use the `scripts/build.py` script, then link against the produced static library like any other C library.
 
 ## Running Tests
+> Note: Code coverage isn't perfect. Most of the high level functions have tests, but again, while a reasonable effort has been made to check that the code works, there are no guarantees of accuracy.
+
 Testing uses [Unity](https://www.throwtheswitch.org/unity). Before running tests, it is necessary to install unity into the project. To do so (in a POSIX-compliant shell) run the following:
 ```bash
 mkdir -p tests/unity/src tests/unity/include
