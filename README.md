@@ -11,7 +11,7 @@ Probably not. It's not nearly as battle-tested as most scientific libraries, and
 Yes, the library has documentation comments and API documentation is available [here](./API.md).
 
 ## How Do I Build It?
-StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the app, use the `scripts/build.py` script, then link against the produced static library like any other C library.
+StatsAnywhere uses CMake for building, which can be complicated. For a simple way to build the library, use the `scripts/build.py` script, then link against the produced static library like any other C library.
 
 ## Running Tests
 > Note: Code coverage isn't perfect. Most of the high level functions have tests, but again, while a reasonable effort has been made to check that the code works, there are no guarantees of accuracy.
