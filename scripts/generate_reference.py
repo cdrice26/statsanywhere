@@ -34,6 +34,10 @@ with open(out_path, 'w') as out:
     out.write(f"fcdf 3 5 4 {stats.f.cdf(3,5,4):.12g}\n")
 
     # normal
+    out.write(f"normalpdf_std 0 {stats.norm.pdf(0):.12g}\n")
+    out.write(f"normalpdf_std 1.5 {stats.norm.pdf(1.5):.12g}\n")
+    out.write(f"normalpdf 0 0 1 {stats.norm.pdf(0, loc=0, scale=1):.12g}\n")
+    out.write(f"normalpdf 2 1 2 {stats.norm.pdf(2, loc=1, scale=2):.12g}\n")
     out.write(f"normalcdf_std -1 1 {(stats.norm.cdf(1) - stats.norm.cdf(-1)):.12g}\n")
     out.write(f"normalcdf -1 1 1 2 {(stats.norm.cdf((1-1)/2) - stats.norm.cdf((-1-1)/2)):.12g}\n")
 

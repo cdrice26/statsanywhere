@@ -94,6 +94,18 @@ void test_f_distribution_examples(void) {
 
 void test_normal_examples(void) {
     double expected;
+    if (!get_expected("normalpdf_std", "0", &expected)) { TEST_IGNORE_MESSAGE("reference generator unavailable"); }
+    TEST_ASSERT_DOUBLE_WITHIN(EPS, expected, normalpdf_std(0));
+
+    if (!get_expected("normalpdf_std", "1.5", &expected)) { TEST_IGNORE_MESSAGE("reference generator unavailable"); }
+    TEST_ASSERT_DOUBLE_WITHIN(EPS, expected, normalpdf_std(1.5));
+
+    if (!get_expected("normalpdf", "0 0 1", &expected)) { TEST_IGNORE_MESSAGE("reference generator unavailable"); }
+    TEST_ASSERT_DOUBLE_WITHIN(EPS, expected, normalpdf(0, 0, 1));
+
+    if (!get_expected("normalpdf", "2 1 2", &expected)) { TEST_IGNORE_MESSAGE("reference generator unavailable"); }
+    TEST_ASSERT_DOUBLE_WITHIN(EPS, expected, normalpdf(2, 1, 2));
+
     if (!get_expected("normalcdf_std", "-1 1", &expected)) { TEST_IGNORE_MESSAGE("reference generator unavailable"); }
     TEST_ASSERT_DOUBLE_WITHIN(5e-4, expected, normalcdf_std(-1, 1));
 
